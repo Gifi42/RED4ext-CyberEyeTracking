@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Exports">
+      <UniqueIdentifier>{BA9346E3-2673-C57E-2F8B-50559BE92BE0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hooks">
+      <UniqueIdentifier>{E9A8540D-55BD-7CBE-1E3F-201E8A1279EF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="REDs">
+      <UniqueIdentifier>{53358B7C-3F6C-8C0D-E858-7210D46E080F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\red4ext.dll\App.hpp" />
+    <ClInclude Include="..\..\src\red4ext.dll\DevConsole.hpp" />
+    <ClInclude Include="..\..\src\red4ext.dll\Exports\Exports.hpp">
+      <Filter>Exports</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\Hooks\CBaseInitializationState.hpp">
+      <Filter>Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\Hooks\CInitializationState.hpp">
+      <Filter>Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\Hooks\CRunningState.hpp">
+      <Filter>Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\Hooks\CShutdownState.hpp">
+      <Filter>Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\Hooks\Main.hpp">
+      <Filter>Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\PluginManager.hpp" />
+    <ClInclude Include="..\..\src\red4ext.dll\REDs\REDhook.hpp">
+      <Filter>REDs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.dll\Utils.hpp" />
+    <ClInclude Include="..\..\src\red4ext.dll\stdafx.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\red4ext.dll\App.cpp" />
+    <ClCompile Include="..\..\src\red4ext.dll\DevConsole.cpp" />
+    <ClCompile Include="..\..\src\red4ext.dll\Exports\Log.cpp">
+      <Filter>Exports</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Exports\Patterns.cpp">
+      <Filter>Exports</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Hooks\CBaseInitializationState.cpp">
+      <Filter>Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Hooks\CInitializationState.cpp">
+      <Filter>Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Hooks\CRunningState.cpp">
+      <Filter>Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Hooks\CShutdownState.cpp">
+      <Filter>Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Hooks\Main.cpp">
+      <Filter>Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.dll\Main.cpp" />
+    <ClCompile Include="..\..\src\red4ext.dll\PluginManager.cpp" />
+    <ClCompile Include="..\..\src\red4ext.dll\Utils.cpp" />
+    <ClCompile Include="..\..\src\red4ext.dll\stdafx.cpp" />
+  </ItemGroup>
+</Project>

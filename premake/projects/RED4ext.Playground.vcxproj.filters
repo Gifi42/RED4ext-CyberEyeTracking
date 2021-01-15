@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Dumps">
+      <UniqueIdentifier>{4E890F0D-BA9D-37BE-831F-DB1DEFF233EF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\red4ext.playground\App.hpp" />
+    <ClInclude Include="..\..\src\red4ext.playground\Dumps\TypeDump.hpp">
+      <Filter>Dumps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.playground\stdafx.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\red4ext.playground\App.cpp" />
+    <ClCompile Include="..\..\src\red4ext.playground\Dumps\TypeDump.cpp">
+      <Filter>Dumps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.playground\Main.cpp" />
+    <ClCompile Include="..\..\src\red4ext.playground\stdafx.cpp" />
+  </ItemGroup>
+</Project>

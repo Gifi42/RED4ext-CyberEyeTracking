@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="hooks">
+      <UniqueIdentifier>{09B9970F-75CD-BFC0-3E4F-6320AA22BCF1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="memory">
+      <UniqueIdentifier>{DEA8820D-CA4A-ADE3-B305-C1379F463434}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\deps\renhook\src\renhook\exception.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\executable.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\hook_writer.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\hooks\inline_hook.hpp">
+      <Filter>hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\src\renhook\memory\memory_allocator.hpp">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\src\renhook\memory\protection_enum.hpp">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\src\renhook\memory\utils.hpp">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\src\renhook\memory\virtual_protect.hpp">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\src\renhook\pattern.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\renhook.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\suspend_threads.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\utils.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\version.hpp" />
+    <ClInclude Include="..\..\deps\renhook\src\renhook\zydis.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\deps\renhook\src\renhook\exception.cpp" />
+    <ClCompile Include="..\..\deps\renhook\src\renhook\executable.cpp" />
+    <ClCompile Include="..\..\deps\renhook\src\renhook\hook_writer.cpp" />
+    <ClCompile Include="..\..\deps\renhook\src\renhook\memory\memory_allocator.cpp">
+      <Filter>memory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\src\renhook\memory\virtual_protect.cpp">
+      <Filter>memory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\src\renhook\pattern.cpp" />
+    <ClCompile Include="..\..\deps\renhook\src\renhook\suspend_threads.cpp" />
+    <ClCompile Include="..\..\deps\renhook\src\renhook\utils.cpp" />
+    <ClCompile Include="..\..\deps\renhook\src\renhook\zydis.cpp" />
+  </ItemGroup>
+</Project>

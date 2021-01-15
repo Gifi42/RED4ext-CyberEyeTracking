@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Zydis">
+      <UniqueIdentifier>{6B966BA4-D756-E7DA-A091-30580C112CB7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Zydis\Generated">
+      <UniqueIdentifier>{C908F1BF-3540-3957-3E4A-9D7AAA006050}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Zydis\Internal">
+      <UniqueIdentifier>{F7045E99-E3FE-86EB-CC6B-1DFCB804ED57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Decoder.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\DecoderTypes.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Formatter.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\FormatterBuffer.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Generated\EnumISAExt.h">
+      <Filter>include\Zydis\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Generated\EnumISASet.h">
+      <Filter>include\Zydis\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Generated\EnumInstructionCategory.h">
+      <Filter>include\Zydis\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Generated\EnumMnemonic.h">
+      <Filter>include\Zydis\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Generated\EnumRegister.h">
+      <Filter>include\Zydis\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Internal\DecoderData.h">
+      <Filter>include\Zydis\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Internal\FormatterATT.h">
+      <Filter>include\Zydis\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Internal\FormatterBase.h">
+      <Filter>include\Zydis\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Internal\FormatterIntel.h">
+      <Filter>include\Zydis\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Internal\SharedData.h">
+      <Filter>include\Zydis\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Internal\String.h">
+      <Filter>include\Zydis\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\MetaInfo.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Mnemonic.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Register.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\SharedTypes.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\ShortString.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Status.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Utils.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\deps\renhook\deps\zydis\include\Zydis\Zydis.h">
+      <Filter>include\Zydis</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\Decoder.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\DecoderData.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\Formatter.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\FormatterATT.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\FormatterBase.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\FormatterBuffer.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\FormatterIntel.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\MetaInfo.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\Mnemonic.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\Register.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\SharedData.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\String.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\Utils.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\renhook\deps\zydis\src\Zydis.c">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

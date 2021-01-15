@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Launchers">
+      <UniqueIdentifier>{AA372F42-16A2-E3B8-5FE0-945ECB89C10D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\red4ext.loader\App.hpp" />
+    <ClInclude Include="..\..\src\red4ext.loader\Launchers\BaseLauncher.hpp">
+      <Filter>Launchers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.loader\Launchers\CustomLauncher.hpp">
+      <Filter>Launchers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.loader\Launchers\GOGGalaxy.hpp">
+      <Filter>Launchers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.loader\Launchers\Steam.hpp">
+      <Filter>Launchers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\red4ext.loader\Registry.hpp" />
+    <ClInclude Include="..\..\src\red4ext.loader\stdafx.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\red4ext.loader\App.cpp" />
+    <ClCompile Include="..\..\src\red4ext.loader\Launchers\BaseLauncher.cpp">
+      <Filter>Launchers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.loader\Launchers\CustomLauncher.cpp">
+      <Filter>Launchers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.loader\Launchers\GOGGalaxy.cpp">
+      <Filter>Launchers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.loader\Launchers\Steam.cpp">
+      <Filter>Launchers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\red4ext.loader\Main.cpp" />
+    <ClCompile Include="..\..\src\red4ext.loader\stdafx.cpp" />
+  </ItemGroup>
+</Project>
