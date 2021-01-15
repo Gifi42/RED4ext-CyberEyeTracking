@@ -1,6 +1,6 @@
 #pragma once
 
-namespace CyberEyeTracker::Workers
+namespace CyberEyeTracking::Workers
 {
     class HealthBarWorker
     {
@@ -10,5 +10,6 @@ namespace CyberEyeTracker::Workers
 
         void Init();
         void HideHPBar();
+        void ShowHPBar();
     };
 }

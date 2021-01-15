@@ -3,10 +3,21 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\cybereyetracking\Main.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\stdafx.cpp" />
-    <ClCompile Include="..\..\src\cybereyetracking\HealthBarWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\HealthBarWorker.cpp">
+      <Filter>GameWorkers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\HealthBarWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\HealthBarWorker.hpp">
+      <Filter>GameWorkers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="GameWorkers">
+      <UniqueIdentifier>{171e5b52-cf4a-4374-b1a1-964bf111ef13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -76,51 +76,79 @@ uint64_t HealthbarWidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable*
     return HealthbarWidgetControllerDestroyOrig(aThis, aMemory);
 }
 
-void Hide(uint64_t aHealthbarWidgetGameController)
+void SetOpacity(float value)
 {
-    if (!aHealthbarWidgetGameController)
-        return;
+    decltype(_scriptObjects) copy = _scriptObjects;
 
-    uint64_t holder = aHealthbarWidgetGameController;
-    if (_hpBarProp->flags.b21)
+    for (auto& so : copy)
     {
-        holder = (uint64_t)((RED4ext::IScriptable*)aHealthbarWidgetGameController)->GetValueHolder();
-    }
-
-    uintptr_t addr = (uintptr_t)holder + _hpBarProp->valueOffset;
-
-    auto pWH = reinterpret_cast<RED4ext::WeakHandle<RED4ext::IScriptable>*>(addr);
-
-    if (pWH)
-    {
-        auto inkWidget = pWH->Lock();
-        if (inkWidget)
+        RED4ext::IScriptable* scriptable = (RED4ext::IScriptable*)so;
+        if (*(uint64_t*)scriptable == 0)
         {
-            static auto base = std::chrono::high_resolution_clock::now();
-            auto now = std::chrono::high_resolution_clock::now();
-            float opacity = _opacityProp->GetValue<float>(inkWidget.GetPtr());
-            float time = std::chrono::duration<float>(now - base).count();
-            float varying_0_1 = 0.5f + 0.5f * std::sinf(time);
-            float new_opacity = 0.5f + 0.5f * varying_0_1;
-
-            // Does work but the widget doesn't update its render...
-            // s_opacityProp->SetValue<float>(inkWidget.GetPtr(), new_opacity);
-
-            auto ctrler = (RED4ext::IScriptable*)aHealthbarWidgetGameController;
-            
-            inkWidget->ExecuteFunction("SetOpacity", 0);
-
-            // Looks that this one does not work :/
-            // ctrler->ExecuteMethod("UpdateRequired");
+            spdlog::debug("HealtBarWorker.HideHPBar: null vtbl");
+            continue;
         }
-        else
+
+        if (scriptable->ref.instance && scriptable->ref.GetUseCount())
         {
-            spdlog::debug("couldn't lock HPBar whandle");
+            ScriptableHandle sh(scriptable); // auto-share_from_this
+            s_objhs.emplace((uint64_t)scriptable, sh);
         }
+        if (!scriptable)
+            return;
+
+        uint64_t holder = (uint64_t)scriptable;
+        if (_hpBarProp->flags.b21)
+        {
+            holder = (uint64_t)((RED4ext::IScriptable*)scriptable)->GetValueHolder();
+        }
+
+        uintptr_t addr = (uintptr_t)holder + _hpBarProp->valueOffset;
+
+        auto pWH = reinterpret_cast<RED4ext::WeakHandle<RED4ext::IScriptable>*>(addr);
+
+        if (pWH)
+        {
+            auto inkWidget = pWH->Lock();
+            if (inkWidget)
+            {
+                static auto base = std::chrono::high_resolution_clock::now();
+                auto now = std::chrono::high_resolution_clock::now();
+                float opacity = _opacityProp->GetValue<float>(inkWidget.GetPtr());
+
+                float time = std::chrono::duration<float>(now - base).count();
+                float varying_0_1 = 0.5f + 0.5f * std::sinf(time);
+                float new_opacity = 0.5f + 0.5f * varying_0_1;
+
+                // Does work but the widget doesn't update its render...
+                // s_opacityProp->SetValue<float>(inkWidget.GetPtr(), new_opacity);
+
+                auto ctrler = (RED4ext::IScriptable*)scriptable;
+
+                inkWidget->ExecuteFunction("SetOpacity", value);
+
+                // Looks that this one does not work :/
+                // ctrler->ExecuteMethod("UpdateRequired");
+            }
+            else
+            {
+                spdlog::debug("couldn't lock HPBar whandle");
+            }
+        }
+        
+
+        /*auto typ = scriptable->GetType();
+        if (typ->GetType() != RED4ext::ERTTIType::Class ||
+            !static_cast<RED4ext::CClass*>(typ)->IsA(_healthbarWidgetGameControllerCls))
+        {
+            RED4ext::CName cn;
+            typ->GetName(cn);
+            ("HealtBarWorker.HideHPBar: scriptable's type is {0}", cn.ToString());
+        }*/
     }
 }
 
-void CyberEyeTracker::Workers::HealthBarWorker::Init()
+void CyberEyeTracking::Workers::HealthBarWorker::Init()
 {
     auto rtti = RED4ext::CRTTISystem::Get();
 
@@ -162,34 +190,12 @@ void CyberEyeTracker::Workers::HealthBarWorker::Init()
     }
 }
 
-void CyberEyeTracker::Workers::HealthBarWorker::HideHPBar()
+void CyberEyeTracking::Workers::HealthBarWorker::HideHPBar()
 {
-    decltype(_scriptObjects) copy = _scriptObjects;
+    SetOpacity(0.08);
+}
 
-    for (auto& so : copy)
-    {
-        RED4ext::IScriptable* scriptable = (RED4ext::IScriptable*)so;
-        if (*(uint64_t*)scriptable == 0)
-        {
-            spdlog::debug("HealtBarWorker.HideHPBar: null vtbl");
-            continue;
-        }
-
-        if (scriptable->ref.instance && scriptable->ref.GetUseCount())
-        {
-            ScriptableHandle sh(scriptable); // auto-share_from_this
-            s_objhs.emplace((uint64_t)scriptable, sh);
-        }
-
-        Hide((uint64_t)scriptable);
-
-        /*auto typ = scriptable->GetType();
-        if (typ->GetType() != RED4ext::ERTTIType::Class ||
-            !static_cast<RED4ext::CClass*>(typ)->IsA(_healthbarWidgetGameControllerCls))
-        {
-            RED4ext::CName cn;
-            typ->GetName(cn);
-            ("HealtBarWorker.HideHPBar: scriptable's type is {0}", cn.ToString());
-        }*/
-    }
+void CyberEyeTracking::Workers::HealthBarWorker::ShowHPBar()
+{
+    SetOpacity(1);
 }

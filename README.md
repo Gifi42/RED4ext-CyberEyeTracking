@@ -1,6 +1,6 @@
 # RED4ext-CyberEyeTracking
 
-This project is intended to offer an eye tracking user experience with ([Tobii EyeTracker]https://gaming.tobii.com) in ([Cyberpunk 2077](https://www.cyberpunk.net)) game.
+This project is intended to offer an eye tracking user experience with ([Tobii EyeTracker](https://gaming.tobii.com)) in ([Cyberpunk 2077](https://www.cyberpunk.net)) game.
 The development of the mod is in the progress.
 
 ## Credits
