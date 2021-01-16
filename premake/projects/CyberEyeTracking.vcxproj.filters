@@ -7,6 +7,9 @@
       <Filter>GameWorkers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp">
+      <Filter>GameWorkers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
@@ -14,6 +17,9 @@
       <Filter>GameWorkers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.h">
+      <Filter>GameWorkers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameWorkers">

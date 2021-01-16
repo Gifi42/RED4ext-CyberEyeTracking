@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2020 - present Octavian Dima
+Copyright (c) 2020 - present [jdiablo@mail.ru]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

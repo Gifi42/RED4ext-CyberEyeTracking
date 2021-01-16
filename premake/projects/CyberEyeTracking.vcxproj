@@ -115,6 +115,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.h" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\HealthBarWorker.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +124,7 @@
     <ClCompile Include="..\..\src\cybereyetracking\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\HealthBarWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
