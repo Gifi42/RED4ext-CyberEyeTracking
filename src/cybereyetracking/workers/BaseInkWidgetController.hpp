@@ -4,10 +4,14 @@ namespace CyberEyeTracking::Workers
 {
     class BaseInkWidgetController
     {
+    private:
+        static bool vtblHooked;
     protected:
-        RED4ext::CClass* GetInkWidgetControllerCls();
-        std::set<uint64_t> GetScriptObjects();
+        RED4ext::CRTTISystem* _rtti;
+        RED4ext::CClass* _inkWidgetControllerCls;
+        std::set<RED4ext::IScriptable*> GetScriptObjects();
         RED4ext::CClass* _inkWidgetCls = nullptr;
+        RED4ext::CName _ctrlrRTTIname;
     public:
         BaseInkWidgetController(char* ctrlrRTTIname);
         ~BaseInkWidgetController() = default;

@@ -1,13 +1,16 @@
 #pragma once
 
-#include "BaseInkWidgetController.h"
+#include "BaseInkWidgetController.hpp"
 
 namespace CyberEyeTracking::Workers
 {
-    class HealthBarWorker : BaseInkWidgetController
+    class HealthBarWorker : public BaseInkWidgetController
     {
+    private:
+        void SetOpacity(float value);
     public:
-        HealthBarWorker();
+        HealthBarWorker()
+            : BaseInkWidgetController("healthbarWidgetGameController"){};
         ~HealthBarWorker() = default;
 
         void Init();

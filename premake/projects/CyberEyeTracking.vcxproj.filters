@@ -17,7 +17,7 @@
       <Filter>GameWorkers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.h">
+    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp">
       <Filter>GameWorkers</Filter>
     </ClInclude>
   </ItemGroup>

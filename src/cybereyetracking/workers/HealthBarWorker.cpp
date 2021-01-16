@@ -6,22 +6,15 @@
 using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
 
-RED4ext::CProperty* _hpBarProp = nullptr;
-
-
-RED4ext::CProperty* _opacityProp = nullptr;
-
-
-void SetOpacity(std::set<uint64_t> scriptObjects, float value)
+void CyberEyeTracking::Workers::HealthBarWorker::SetOpacity(float value)
 {
-    decltype(scriptObjects) copy = scriptObjects;
+    decltype(GetScriptObjects()) copy = GetScriptObjects();
 
-    for (auto& so : copy)
+    for (auto& scriptable : copy)
     {
-        RED4ext::IScriptable* scriptable = (RED4ext::IScriptable*)so;
         if (*(uint64_t*)scriptable == 0)
         {
-            spdlog::debug("HealtBarWorker.HideHPBar: null vtbl");
+            spdlog::debug("HealtBarWorker: null vtbl");
             continue;
         }
 
@@ -34,12 +27,13 @@ void SetOpacity(std::set<uint64_t> scriptObjects, float value)
             return;
 
         uint64_t holder = (uint64_t)scriptable;
-        if (_hpBarProp->flags.b21)
+        auto rootWidgetProp = _inkWidgetControllerCls->GetProperty("RootWidget");
+        if (rootWidgetProp->flags.b21)
         {
             holder = (uint64_t)((RED4ext::IScriptable*)scriptable)->GetValueHolder();
         }
 
-        uintptr_t addr = (uintptr_t)holder + _hpBarProp->valueOffset;
+        uintptr_t addr = (uintptr_t)holder + rootWidgetProp->valueOffset;
 
         auto pWH = reinterpret_cast<RED4ext::WeakHandle<RED4ext::IScriptable>*>(addr);
 
@@ -69,44 +63,21 @@ void SetOpacity(std::set<uint64_t> scriptObjects, float value)
                 spdlog::debug("couldn't lock HPBar whandle");
             }
         }
-        
-        /*auto typ = scriptable->GetType();
-        if (typ->GetType() != RED4ext::ERTTIType::Class ||
-            !static_cast<RED4ext::CClass*>(typ)->IsA(_healthbarWidgetGameControllerCls))
-        {
-            RED4ext::CName cn;
-            typ->GetName(cn);
-            ("HealtBarWorker.HideHPBar: scriptable's type is {0}", cn.ToString());
-        }*/
     }
 }
-CyberEyeTracking::Workers::HealthBarWorker::HealthBarWorker()
-    : CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController("healthbarWidgetGameController")
-{
 
-}
 
 void CyberEyeTracking::Workers::HealthBarWorker::Init()
 {
     InitBase();
-    auto rtti = RED4ext::CRTTISystem::Get();
-    auto cls = GetInkWidgetControllerCls();
-    _hpBarProp = cls->GetProperty("HPBar");
-    spdlog::debug("HPBar                        : {}", _hpBarProp->name.ToString());
-    spdlog::debug("address: {:016X}", (uint64_t)_hpBarProp);
-
-    _opacityProp = _inkWidgetCls->GetProperty("opacity");
-    spdlog::debug("opacity                      : {}", _opacityProp->name.ToString());
-    spdlog::debug("address: {:016X}", (uint64_t)_opacityProp);
-
 }
 
 void CyberEyeTracking::Workers::HealthBarWorker::HideHPBar()
 {
-    SetOpacity(GetScriptObjects(), 0.08);
+    SetOpacity(0.07);
 }
 
 void CyberEyeTracking::Workers::HealthBarWorker::ShowHPBar()
 {
-    SetOpacity(GetScriptObjects(), 1);
+    SetOpacity(1);
 }

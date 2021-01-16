@@ -115,7 +115,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.h" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\HealthBarWorker.hpp" />
   </ItemGroup>
   <ItemGroup>

@@ -1,17 +1,40 @@
 #include <stdafx.hpp>
 #include <set>
 
-#include "BaseInkWidgetController.h"
+#include "BaseInkWidgetController.hpp"
 
 using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
-RED4ext::CName _ctrlrRTTIname;
-RED4ext::CClass* _inkWidgetControllerCls = nullptr;
-std::set<uint64_t> _scriptObjects = std::set<uint64_t>();
+std::set<RED4ext::CClass*> g_inkWidgetControllersCls = std::set<RED4ext::CClass*>();
+std::set<RED4ext::IScriptable*> g_scriptObjects = std::set<RED4ext::IScriptable*>();
 
 std::mutex _syncMutex;
 
 std::unordered_map<uint64_t, ScriptableHandle> s_objhs;
+
+bool _g_FindScriptObject(RED4ext::IScriptable* aScriptable)
+{
+    for (auto& x : g_scriptObjects)
+    {
+        if (x == aScriptable)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool _g_FindInkWidgetControllersCls(RED4ext::CClass* aThis)
+{
+    for (auto& x : g_inkWidgetControllersCls)
+    {
+        if (aThis == x)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 uint64_t (*WidgetControllerInitOrig)(void* aThis, RED4ext::IScriptable* aScriptable) = nullptr;
 
@@ -20,34 +43,43 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
     auto ret = WidgetControllerInitOrig(aThis, aScriptable);
 
     _syncMutex.lock();
-
-    if (aThis == _inkWidgetControllerCls &&
-        _scriptObjects.find((uint64_t)aScriptable) == _scriptObjects.end())
+    
+    if (!_g_FindInkWidgetControllersCls((RED4ext::CClass*)aThis))
     {
-        if (aScriptable)
-        {
-            // MEMORY_BASIC_INFORMATION mbi;
-            // VirtualQuery(aScriptable, &mbi, sizeof(mbi));
-            // spdlog::debug("aScriptable's protect flag: {:X}", mbi.Protect);
-
-            _scriptObjects.emplace((uint64_t)aScriptable);
-        }
-        else
-        {
-            spdlog::debug("hooked InitCls but aScriptable is null");
-        }
-        // uint64_t addr = (uint64_t)aScriptable + 0xC0;
-        // bool ok = HWBreakpoint::Set((void*)addr, HWBreakpoint::Condition::ReadWrite);
-        // if (ok)
-        //{
-        //    spdlog::debug("HWBP set at {:016X}", addr);
-        //    s_obj_addresses.emplace((uint64_t)aScriptable, (HANDLE)addr);
-        //}
-        // else
-        //{
-        //    spdlog::debug("HWBP failed at {:016X}", addr);
-        //}
+        _syncMutex.unlock();
+        return ret;
     }
+   
+    if (_g_FindScriptObject(aScriptable))
+    {
+        _syncMutex.unlock();
+        return ret;
+    }
+
+    if (aScriptable)
+    {
+        // MEMORY_BASIC_INFORMATION mbi;
+        // VirtualQuery(aScriptable, &mbi, sizeof(mbi));
+        // spdlog::debug("aScriptable's protect flag: {:X}", mbi.Protect);
+
+        g_scriptObjects.emplace(aScriptable);
+    }
+    else
+    {
+        spdlog::debug("hooked InitCls but aScriptable is null");
+    }
+    // uint64_t addr = (uint64_t)aScriptable + 0xC0;
+    // bool ok = HWBreakpoint::Set((void*)addr, HWBreakpoint::Condition::ReadWrite);
+    // if (ok)
+    //{
+    //    spdlog::debug("HWBP set at {:016X}", addr);
+    //    s_obj_addresses.emplace((uint64_t)aScriptable, (HANDLE)addr);
+    //}
+    // else
+    //{
+    //    spdlog::debug("HWBP failed at {:016X}", addr);
+    //}
+    
     _syncMutex.unlock();
     return ret;
 }
@@ -58,22 +90,17 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
 {
     _syncMutex.lock();
     
-    if (aThis != _inkWidgetControllerCls)
+    if (_g_FindInkWidgetControllersCls((RED4ext::CClass*)aThis) && _g_FindScriptObject(aMemory))
     {
-        // spdlog::debug("MyDestroyHook: aThis != s_healthbarWidgetGameControllerCls");
+        spdlog::debug("hooked DestroyCls aScriptable:{:016X}", (uint64_t)aMemory);
+        g_scriptObjects.erase(aMemory);
     }
-    else
-    {
-        auto it = _scriptObjects.find((uint64_t)aMemory);
-        if (it != _scriptObjects.end())
-        {
-            spdlog::debug("hooked DestroyCls aScriptable:{:016X}", (uint64_t)aMemory);
-            _scriptObjects.erase(it);
-        }
-    }
+    
     _syncMutex.unlock();
     return WidgetControllerDestroyOrig(aThis, aMemory);
 }
+
+bool CyberEyeTracking::Workers::BaseInkWidgetController::vtblHooked = false;
 
 CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(char* ctrlrRTTIname)
 {
@@ -82,13 +109,24 @@ CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(char
 
 void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
 {
-    auto rtti = RED4ext::CRTTISystem::Get();
-    _inkWidgetControllerCls = rtti->GetClass(_ctrlrRTTIname);
+    _rtti = RED4ext::CRTTISystem::Get();
+    _inkWidgetControllerCls = _rtti->GetClass(_ctrlrRTTIname);
+    bool exists = false;
+    for (auto& x : g_inkWidgetControllersCls)
+    {
+        if (_inkWidgetControllerCls == x)
+        {
+            exists = true;
+            break;
+        }
+    }
+    if (!exists)
+        g_inkWidgetControllersCls.emplace(_inkWidgetControllerCls);
 
     spdlog::debug("Controller name: {}", _inkWidgetControllerCls->name.ToString());
     spdlog::debug("address: {:016X}", (uint64_t)_inkWidgetControllerCls);
 
-    _inkWidgetCls = rtti->GetClass("inkWidget");
+    _inkWidgetCls = _rtti->GetClass("inkWidget");
     spdlog::debug("inkWidget                    : {}", _inkWidgetCls->name.ToString());
     spdlog::debug("address: {:016X}", (uint64_t)_inkWidgetCls);
     uint64_t* pvtbl = *(uint64_t**)_inkWidgetControllerCls;
@@ -96,6 +134,9 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
     const uint64_t baseaddr = (uint64_t)GetModuleHandle(nullptr);
     spdlog::debug("baseaddr      : {:016X}", baseaddr);
     spdlog::debug("vtbladdr (rel): {:016X}", (uint64_t)pvtbl - baseaddr);
+
+    if (vtblHooked)
+        return;
 
     WidgetControllerInitOrig = (decltype(WidgetControllerInitOrig))pvtbl[27];
     WidgetControllerDestroyOrig = (decltype(WidgetControllerDestroyOrig))pvtbl[28];
@@ -109,15 +150,20 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
         spdlog::debug("vtbl hooked !");
 
         VirtualProtect((void*)pvtbl, 0x100, oldRw, NULL);
+        vtblHooked = true;
     }
 }
 
-RED4ext::CClass* CyberEyeTracking::Workers::BaseInkWidgetController::GetInkWidgetControllerCls()
-{
-    return _inkWidgetControllerCls;
-}
 
-std::set<uint64_t> CyberEyeTracking::Workers::BaseInkWidgetController::GetScriptObjects()
+std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetController::GetScriptObjects()
 {
-    return _scriptObjects;
+    std::set<RED4ext::IScriptable*> res;
+    for (auto& so : g_scriptObjects)
+    {
+        if (_inkWidgetControllerCls->name == so->classType->name)
+        {
+            res.emplace(so);
+        }
+    }
+    return res;
 }

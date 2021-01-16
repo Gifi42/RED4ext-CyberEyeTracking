@@ -38,12 +38,13 @@ RED4EXT_EXPORT void OnBaseInitialization()
 {
     InitializeLogger(L"");
     _healthBarWorker = CyberEyeTracking::Workers::HealthBarWorker();
+    
     _eyeTracker = CyberEyeTracking::EyeTracker();
 }
 
 RED4EXT_EXPORT void OnInitialization()
 {
-    spdlog::info("Looking for connected eye tracker device");
+    spdlog::info("Looking for a connected eye tracking device");
 }
 
 
@@ -120,6 +121,7 @@ RED4EXT_EXPORT void OnUpdate()
     if ((now - timeStart) >= 10s && !hooked)
     {
         _healthBarWorker.Init();
+        
         hooked = true;
     }
     if (!hooked)
@@ -135,10 +137,12 @@ RED4EXT_EXPORT void OnUpdate()
             y >=0  && y <= 0.165) // (0-110)
         {
             _healthBarWorker.ShowHPBar();
+            
         }
         else
         {
             _healthBarWorker.HideHPBar();
+            
         }
     }
     

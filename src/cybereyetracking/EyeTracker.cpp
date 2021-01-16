@@ -76,13 +76,21 @@ float* CyberEyeTracking::EyeTracker::GetPos()
 
 void CyberEyeTracking::EyeTracker::Finalize()
 {
-    if (api)
+    try
     {
-        tobii_api_destroy(api);
+        if (api)
+        {
+            tobii_api_destroy(api);
+            api = nullptr;
+        }
+        if (device)
+        {
+            tobii_gaze_point_unsubscribe(device);
+            tobii_device_destroy(device);
+            device = nullptr;
+        }
     }
-    if (device)
+    catch (const std::exception&)
     {
-        tobii_gaze_point_unsubscribe(device);
-        tobii_device_destroy(device);
     }
 }
