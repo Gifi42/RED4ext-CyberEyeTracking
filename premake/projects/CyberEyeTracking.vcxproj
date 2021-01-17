@@ -117,6 +117,7 @@
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\HealthBarWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\MinimapWorker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
@@ -126,6 +127,7 @@
     </ClCompile>
     <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\HealthBarWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\MinimapWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Zycore.vcxproj">

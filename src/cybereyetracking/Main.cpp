@@ -6,13 +6,15 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <Workers/HealthBarWorker.hpp>
+#include <Workers/MinimapWorker.hpp>
 #include <EyeTracker.hpp>
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
 CyberEyeTracking::Workers::HealthBarWorker _healthBarWorker;
-CyberEyeTracking::EyeTracker _eyeTracker;
+CyberEyeTracking::Workers::MinimapWorker _minimapWorker;
 
+CyberEyeTracking::EyeTracker _eyeTracker;
 
 void InitializeLogger(std::filesystem::path aRoot)
 {
@@ -38,7 +40,7 @@ RED4EXT_EXPORT void OnBaseInitialization()
 {
     InitializeLogger(L"");
     _healthBarWorker = CyberEyeTracking::Workers::HealthBarWorker();
-    
+    _minimapWorker = CyberEyeTracking::Workers::MinimapWorker();
     _eyeTracker = CyberEyeTracking::EyeTracker();
 }
 
@@ -121,7 +123,7 @@ RED4EXT_EXPORT void OnUpdate()
     if ((now - timeStart) >= 10s && !hooked)
     {
         _healthBarWorker.Init();
-        
+        _minimapWorker.Init();
         hooked = true;
     }
     if (!hooked)
@@ -137,12 +139,12 @@ RED4EXT_EXPORT void OnUpdate()
             y >=0  && y <= 0.165) // (0-110)
         {
             _healthBarWorker.ShowHPBar();
-            
+            _minimapWorker.ShowMiniMap();
         }
         else
         {
             _healthBarWorker.HideHPBar();
-            
+            _minimapWorker.HideMiniMap();
         }
     }
     

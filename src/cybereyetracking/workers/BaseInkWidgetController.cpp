@@ -1,5 +1,6 @@
 #include <stdafx.hpp>
 #include <set>
+#include <map>
 
 #include "BaseInkWidgetController.hpp"
 
@@ -12,7 +13,7 @@ std::mutex _syncMutex;
 
 std::unordered_map<uint64_t, ScriptableHandle> s_objhs;
 
-bool _g_FindScriptObject(RED4ext::IScriptable* aScriptable)
+bool g_FindScriptObject(RED4ext::IScriptable* aScriptable)
 {
     for (auto& x : g_scriptObjects)
     {
@@ -24,7 +25,7 @@ bool _g_FindScriptObject(RED4ext::IScriptable* aScriptable)
     return false;
 }
 
-bool _g_FindInkWidgetControllersCls(RED4ext::CClass* aThis)
+bool g_FindInkWidgetControllersCls(RED4ext::CClass* aThis)
 {
     for (auto& x : g_inkWidgetControllersCls)
     {
@@ -36,21 +37,29 @@ bool _g_FindInkWidgetControllersCls(RED4ext::CClass* aThis)
     return false;
 }
 
-uint64_t (*WidgetControllerInitOrig)(void* aThis, RED4ext::IScriptable* aScriptable) = nullptr;
+typedef uint64_t (*HookFunction)(void*, RED4ext::IScriptable*);
+typedef std::map<std::string, HookFunction> HooksMap;
+
+HooksMap WidgetControllersOrigInitHooks;
 
 uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable)
 {
-    auto ret = WidgetControllerInitOrig(aThis, aScriptable);
-
     _syncMutex.lock();
+    auto cls = ((RED4ext::CClass*)aThis);
+    auto initOrig = WidgetControllersOrigInitHooks[cls->name.ToString()];
+    if (initOrig == nullptr)
+        initOrig = WidgetControllersOrigInitHooks.end()->second;
+
+    auto ret = initOrig(aThis, aScriptable);
     
-    if (!_g_FindInkWidgetControllersCls((RED4ext::CClass*)aThis))
+    
+    if (!g_FindInkWidgetControllersCls(cls))
     {
         _syncMutex.unlock();
         return ret;
     }
    
-    if (_g_FindScriptObject(aScriptable))
+    if (g_FindScriptObject(aScriptable))
     {
         _syncMutex.unlock();
         return ret;
@@ -84,22 +93,28 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
     return ret;
 }
 
-uint64_t (*WidgetControllerDestroyOrig)(void* aThis, RED4ext::IScriptable* aMemory) = nullptr;
+HooksMap WidgetControllersOrigDestroyHooks{};
 
 uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
 {
+    auto cls = ((RED4ext::CClass*)aThis);
     _syncMutex.lock();
     
-    if (_g_FindInkWidgetControllersCls((RED4ext::CClass*)aThis) && _g_FindScriptObject(aMemory))
+    if (g_FindInkWidgetControllersCls(cls) && g_FindScriptObject(aMemory))
     {
         spdlog::debug("hooked DestroyCls aScriptable:{:016X}", (uint64_t)aMemory);
         g_scriptObjects.erase(aMemory);
     }
     
     _syncMutex.unlock();
-    return WidgetControllerDestroyOrig(aThis, aMemory);
+    
+    auto destroyOrig = WidgetControllersOrigDestroyHooks[cls->name.ToString()];
+    return destroyOrig(aThis, aMemory);
 }
-
+uint64_t test(void* aThis, RED4ext::IScriptable* aScriptable)
+{
+    return 0;
+}
 bool CyberEyeTracking::Workers::BaseInkWidgetController::vtblHooked = false;
 
 CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(char* ctrlrRTTIname)
@@ -123,7 +138,8 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
     if (!exists)
         g_inkWidgetControllersCls.emplace(_inkWidgetControllerCls);
 
-    spdlog::debug("Controller name: {}", _inkWidgetControllerCls->name.ToString());
+    auto clsName = _inkWidgetControllerCls->name.ToString();
+    spdlog::debug("Controller name: {}", clsName);
     spdlog::debug("address: {:016X}", (uint64_t)_inkWidgetControllerCls);
 
     _inkWidgetCls = _rtti->GetClass("inkWidget");
@@ -135,12 +151,10 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
     spdlog::debug("baseaddr      : {:016X}", baseaddr);
     spdlog::debug("vtbladdr (rel): {:016X}", (uint64_t)pvtbl - baseaddr);
 
-    if (vtblHooked)
-        return;
-
-    WidgetControllerInitOrig = (decltype(WidgetControllerInitOrig))pvtbl[27];
-    WidgetControllerDestroyOrig = (decltype(WidgetControllerDestroyOrig))pvtbl[28];
-
+  
+    WidgetControllersOrigInitHooks[clsName] = (HookFunction)pvtbl[27];
+    WidgetControllersOrigDestroyHooks[clsName] = (HookFunction)pvtbl[28];
+    
     DWORD oldRw;
     if (VirtualProtect((void*)pvtbl, 0x100, PAGE_EXECUTE_READWRITE, &oldRw))
     {
