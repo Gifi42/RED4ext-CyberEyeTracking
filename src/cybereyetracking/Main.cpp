@@ -139,11 +139,20 @@ RED4EXT_EXPORT void OnUpdate()
             y >=0  && y <= 0.165) // (0-110)
         {
             _healthBarWorker.ShowHPBar();
-            _minimapWorker.ShowMiniMap();
         }
         else
         {
             _healthBarWorker.HideHPBar();
+            _minimapWorker.HideMiniMap();
+        }
+
+        if (x >= 0.833 && x <= 1      // (1600-1920)
+            && y >= 0 && y <= 0.3055) // (0-330)
+        {
+            _minimapWorker.ShowMiniMap();
+        }
+        else
+        {
             _minimapWorker.HideMiniMap();
         }
     }

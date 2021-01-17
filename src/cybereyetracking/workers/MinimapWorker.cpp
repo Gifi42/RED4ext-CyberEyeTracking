@@ -21,7 +21,6 @@ void CyberEyeTracking::Workers::MinimapWorker::SetOpacity(float value)
         if (scriptable->ref.instance && scriptable->ref.GetUseCount())
         {
             ScriptableHandle sh(scriptable); // auto-share_from_this
-            //s_objhs.emplace((uint64_t)scriptable, sh);
         }
         if (!scriptable)
             return;
@@ -41,22 +40,8 @@ void CyberEyeTracking::Workers::MinimapWorker::SetOpacity(float value)
         {
             auto inkWidget = pWH->Lock();
             if (inkWidget)
-            {
-                /*static auto base = std::chrono::high_resolution_clock::now();
-                auto now = std::chrono::high_resolution_clock::now();
-                float opacity = _opacityProp->GetValue<float>(inkWidget.GetPtr());
-
-                float time = std::chrono::duration<float>(now - base).count();
-                float varying_0_1 = 0.5f + 0.5f * std::sinf(time);
-                float new_opacity = 0.5f + 0.5f * varying_0_1;*/
-
-                // Does work but the widget doesn't update its render...
-                // s_opacityProp->SetValue<float>(inkWidget.GetPtr(), new_opacity);
-
+            {               
                 inkWidget->ExecuteFunction("SetOpacity", value);
-
-                // Looks that this one does not work :/
-                // ctrler->ExecuteMethod("UpdateRequired");
             }
             else
             {

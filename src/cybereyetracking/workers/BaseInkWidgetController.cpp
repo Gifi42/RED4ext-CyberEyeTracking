@@ -44,15 +44,19 @@ HooksMap WidgetControllersOrigInitHooks;
 
 uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable)
 {
-    _syncMutex.lock();
     auto cls = ((RED4ext::CClass*)aThis);
-    auto initOrig = WidgetControllersOrigInitHooks[cls->name.ToString()];
+    
+    HookFunction initOrig = nullptr;
+    const char* name = cls->name.ToString();
+    if (WidgetControllersOrigInitHooks.count(name))
+        initOrig = WidgetControllersOrigInitHooks[name];
+
     if (initOrig == nullptr)
-        initOrig = WidgetControllersOrigInitHooks.end()->second;
+        initOrig = WidgetControllersOrigInitHooks["healthbarWidgetGameController"];
 
     auto ret = initOrig(aThis, aScriptable);
     
-    
+    _syncMutex.lock();
     if (!g_FindInkWidgetControllersCls(cls))
     {
         _syncMutex.unlock();
@@ -109,6 +113,9 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
     _syncMutex.unlock();
     
     auto destroyOrig = WidgetControllersOrigDestroyHooks[cls->name.ToString()];
+    
+    if (destroyOrig == nullptr)
+        destroyOrig = WidgetControllersOrigInitHooks["healthbarWidgetGameController"];
     return destroyOrig(aThis, aMemory);
 }
 uint64_t test(void* aThis, RED4ext::IScriptable* aScriptable)
@@ -146,12 +153,17 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
     spdlog::debug("inkWidget                    : {}", _inkWidgetCls->name.ToString());
     spdlog::debug("address: {:016X}", (uint64_t)_inkWidgetCls);
     uint64_t* pvtbl = *(uint64_t**)_inkWidgetControllerCls;
-    
-    const uint64_t baseaddr = (uint64_t)GetModuleHandle(nullptr);
-    spdlog::debug("baseaddr      : {:016X}", baseaddr);
-    spdlog::debug("vtbladdr (rel): {:016X}", (uint64_t)pvtbl - baseaddr);
 
-  
+    const uint64_t baseaddr = (uint64_t)GetModuleHandle(nullptr);
+    auto vtblAdr = (uint64_t)pvtbl - baseaddr;
+    spdlog::debug("baseaddr      : {:016X}", baseaddr);
+    spdlog::debug("vtbladdr (rel): {:016X}", vtblAdr);
+
+    for (auto it = WidgetControllersOrigInitHooks.begin(); it != WidgetControllersOrigInitHooks.end(); it++)
+    {
+        if ((uint64_t)it->second == vtblAdr)
+            return;
+    }
     WidgetControllersOrigInitHooks[clsName] = (HookFunction)pvtbl[27];
     WidgetControllersOrigDestroyHooks[clsName] = (HookFunction)pvtbl[28];
     
@@ -164,7 +176,6 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
         spdlog::debug("vtbl hooked !");
 
         VirtualProtect((void*)pvtbl, 0x100, oldRw, NULL);
-        vtblHooked = true;
     }
 }
 
