@@ -117,8 +117,10 @@
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\HealthBarWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\HotkeysWidgetWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\MinimapWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\QuestTrackerWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\WantedBarWorker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
@@ -128,8 +130,10 @@
     </ClCompile>
     <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\HealthBarWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\HotkeysWidgetWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\MinimapWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\QuestTrackerWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\WantedBarWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Zycore.vcxproj">

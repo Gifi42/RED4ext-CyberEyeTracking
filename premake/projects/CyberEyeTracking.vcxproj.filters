@@ -16,6 +16,12 @@
     <ClCompile Include="..\..\src\cybereyetracking\workers\QuestTrackerWorker.cpp">
       <Filter>GameWorkers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\workers\WantedBarWorker.cpp">
+      <Filter>GameWorkers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\workers\HotkeysWidgetWorker.cpp">
+      <Filter>GameWorkers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
@@ -30,6 +36,12 @@
       <Filter>GameWorkers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cybereyetracking\workers\QuestTrackerWorker.hpp">
+      <Filter>GameWorkers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cybereyetracking\workers\WantedBarWorker.hpp">
+      <Filter>GameWorkers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cybereyetracking\workers\HotkeysWidgetWorker.hpp">
       <Filter>GameWorkers</Filter>
     </ClInclude>
   </ItemGroup>

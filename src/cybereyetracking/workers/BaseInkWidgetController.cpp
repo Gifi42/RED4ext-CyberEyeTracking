@@ -51,6 +51,7 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
     
     HookFunction initOrig = nullptr;
     const char* name = cls->name.ToString();
+    
     if (WidgetControllersOrigInitHooks.count(name))
         initOrig = WidgetControllersOrigInitHooks[name];
 
@@ -74,27 +75,12 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
 
     if (aScriptable)
     {
-        // MEMORY_BASIC_INFORMATION mbi;
-        // VirtualQuery(aScriptable, &mbi, sizeof(mbi));
-        // spdlog::debug("aScriptable's protect flag: {:X}", mbi.Protect);
-
         g_scriptObjects.emplace(aScriptable);
     }
     else
     {
         spdlog::debug("hooked InitCls but aScriptable is null");
     }
-    // uint64_t addr = (uint64_t)aScriptable + 0xC0;
-    // bool ok = HWBreakpoint::Set((void*)addr, HWBreakpoint::Condition::ReadWrite);
-    // if (ok)
-    //{
-    //    spdlog::debug("HWBP set at {:016X}", addr);
-    //    s_obj_addresses.emplace((uint64_t)aScriptable, (HANDLE)addr);
-    //}
-    // else
-    //{
-    //    spdlog::debug("HWBP failed at {:016X}", addr);
-    //}
     
     _syncMutex.unlock();
     return ret;
@@ -114,17 +100,17 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
     }
     
     _syncMutex.unlock();
-    
-    auto destroyOrig = WidgetControllersOrigDestroyHooks[cls->name.ToString()];
+
+    HookFunction destroyOrig = nullptr;
+    const char* name = cls->name.ToString();
+    if (WidgetControllersOrigDestroyHooks.count(name))
+        destroyOrig = WidgetControllersOrigDestroyHooks[name];
     
     if (destroyOrig == nullptr)
-        destroyOrig = WidgetControllersOrigInitHooks["healthbarWidgetGameController"];
+        destroyOrig = WidgetControllersOrigDestroyHooks["healthbarWidgetGameController"];
     return destroyOrig(aThis, aMemory);
 }
-uint64_t test(void* aThis, RED4ext::IScriptable* aScriptable)
-{
-    return 0;
-}
+
 bool CyberEyeTracking::Workers::BaseInkWidgetController::vtblHooked = false;
 
 CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(char* ctrlrRTTIname)
@@ -194,7 +180,7 @@ std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetControll
     std::set<RED4ext::IScriptable*> res;
     for (auto& so : g_scriptObjects)
     {
-        if (_inkWidgetControllerCls->name == so->classType->name)
+        if (so->unk18 >= 0 && so->ref.instance != nullptr && _inkWidgetControllerCls->name == so->classType->name)
         {
             res.emplace(so);
         }

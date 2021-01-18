@@ -7,16 +7,25 @@
 
 #include <Workers/HealthBarWorker.hpp>
 #include <Workers/MinimapWorker.hpp>
+#include <Workers/WantedBarWorker.hpp>
 #include <Workers/QuestTrackerWorker.hpp>
+#include <Workers/HotkeysWidgetWorker.hpp>
+
 #include <EyeTracker.hpp>
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
 CyberEyeTracking::Workers::HealthBarWorker _healthBarWorker;
 CyberEyeTracking::Workers::MinimapWorker _minimapWorker;
-CyberEyeTracking::Workers::QuestTrackerWorker _questWorker;
+CyberEyeTracking::Workers::WantedBarWorker _wantedBarWorker;
+CyberEyeTracking::Workers::QuestTrackerWorker _questTrackerWidgetWorker;
+CyberEyeTracking::Workers::HotkeysWidgetWorker _hotkeysWidgetWorker;
 
 CyberEyeTracking::EyeTracker _eyeTracker;
+
+RED4ext::CClass* scriptGameInstanceCls;
+
+float _gameTimeStamp;
 
 void InitializeLogger(std::filesystem::path aRoot)
 {
@@ -43,7 +52,10 @@ RED4EXT_EXPORT void OnBaseInitialization()
     InitializeLogger(L"");
     _healthBarWorker = CyberEyeTracking::Workers::HealthBarWorker();
     _minimapWorker = CyberEyeTracking::Workers::MinimapWorker();
-    _questWorker = CyberEyeTracking::Workers::QuestTrackerWorker();
+    _wantedBarWorker = CyberEyeTracking::Workers::WantedBarWorker();
+    _questTrackerWidgetWorker = CyberEyeTracking::Workers::QuestTrackerWorker();
+    _hotkeysWidgetWorker = CyberEyeTracking::Workers::HotkeysWidgetWorker();
+
     _eyeTracker = CyberEyeTracking::EyeTracker();
 }
 
@@ -101,16 +113,14 @@ void LogHandle(RED4ext::HandleBase* handle)
     }
 }
 
-RED4ext::CClass* s_gameuiHUDGameControllerCls = nullptr;
-
 RED4EXT_EXPORT void OnUpdate()
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
-    static bool hooked = false;
+    static bool initialized = false;
     static bool trackerFound = false;
 
     auto now = std::chrono::high_resolution_clock::now();
-
+    auto static gameInstance = RED4ext::CGameEngine::Get()->framework->gameInstance;
     using namespace std::chrono_literals;
 
     if (!trackerFound)
@@ -123,22 +133,39 @@ RED4EXT_EXPORT void OnUpdate()
         return;
     }        
 
-    if ((now - timeStart) >= 10s && !hooked)
+    if ((now - timeStart) >= 10s && !initialized)
     {
         _healthBarWorker.Init();
         _minimapWorker.Init();
-        _questWorker.Init();
-        hooked = true;
+        _wantedBarWorker.Init();
+        _questTrackerWidgetWorker.Init();
+        _hotkeysWidgetWorker.Init();
+        
+        initialized = true;
     }
-    if (!hooked)
+    if (!initialized)
         return;
+    
+    /*float gameTS = 0;
+    
+    RED4ext::ExecuteFunction("gameTimeSystem", "GetGameTimeStamp", &gameTS, {});
+
+    bool gamePaused = gameTS == 43200 || gameTS == _gameTimeStamp;
+    if (gamePaused)
+    {
+        spdlog::debug(gameTS);
+         return;
+    }
+    
+    _gameTimeStamp = gameTS;*/
 
     if ((now - timeStart) > 45s)
     {
         float* pos = _eyeTracker.GetPos();
         float x = pos[0];
         float y = pos[1];
-        
+
+        // ================ CLEAR UI ==============
         if (x >= 0 && x <= 0.25 && //(0-480)
             y >=0  && y <= 0.165) // (0-110)
         {
@@ -149,8 +176,8 @@ RED4EXT_EXPORT void OnUpdate()
             _healthBarWorker.HideWidget();
         }
 
-        if (x >= 0.833 && x <= 1      // (1600-1920)
-            && y >= 0 && y <= 0.3055) // (0-330)
+        if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
+            && y >= 0.037037 && y <= 0.3055) // (41-330)
         {
             _minimapWorker.ShowWidget();
         }
@@ -159,14 +186,34 @@ RED4EXT_EXPORT void OnUpdate()
             _minimapWorker.HideWidget();
         }
 
-        if (x >= 0.786458333 && x <= 1                     // (1510-1920)
-            && y >= 0.35185185 && y <= 0.5555555555555556) // (380-600)
+        if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
+            && y >= 0.055555555 && y <= 0.25)  // (60-270)
         {
-            _questWorker.ShowWidget();
+            _wantedBarWorker.ShowWidget();
         }
         else
         {
-            _questWorker.HideWidget();
+            _wantedBarWorker.HideWidget();
+        }
+
+        if (x >= 0.786458333 && x <= 0.953125          // (1510-1830)
+            && y >= 0.35185185 && y <= 0.555555555555) // (380-600)
+        {
+            _questTrackerWidgetWorker.ShowWidget();
+        }
+        else
+        {
+            _questTrackerWidgetWorker.HideWidget();
+        }
+
+        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+            && y >= 0.8703703 && y <= 1)     // (940-1080)
+        {
+            _hotkeysWidgetWorker.ShowWidget();
+        }
+        else
+        {
+            _hotkeysWidgetWorker.HideWidget();
         }
     }
     
