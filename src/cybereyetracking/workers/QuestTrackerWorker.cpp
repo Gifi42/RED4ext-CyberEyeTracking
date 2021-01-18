@@ -1,12 +1,12 @@
 #include <stdafx.hpp>
 #include <set>
 
-#include "HealthBarWorker.hpp"
+#include "QuestTrackerWorker.hpp"
 
 using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
 
-void CyberEyeTracking::Workers::HealthBarWorker::Init()
+void CyberEyeTracking::Workers::QuestTrackerWorker::Init()
 {
     InitBase();
 }

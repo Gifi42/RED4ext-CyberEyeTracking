@@ -4,6 +4,8 @@
 
 #include "BaseInkWidgetController.hpp"
 
+#define OPACITY_HIDE 0.07
+
 using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
 std::set<RED4ext::CClass*> g_inkWidgetControllersCls = std::set<RED4ext::CClass*>();
@@ -39,6 +41,7 @@ bool g_FindInkWidgetControllersCls(RED4ext::CClass* aThis)
 
 typedef uint64_t (*HookFunction)(void*, RED4ext::IScriptable*);
 typedef std::map<std::string, HookFunction> HooksMap;
+std::map<std::string, uint64_t> WidgetControllersOrigInitRelAdr;
 
 HooksMap WidgetControllersOrigInitHooks;
 
@@ -159,14 +162,20 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
     spdlog::debug("baseaddr      : {:016X}", baseaddr);
     spdlog::debug("vtbladdr (rel): {:016X}", vtblAdr);
 
-    for (auto it = WidgetControllersOrigInitHooks.begin(); it != WidgetControllersOrigInitHooks.end(); it++)
+    for (auto it = WidgetControllersOrigInitRelAdr.begin(); it != WidgetControllersOrigInitRelAdr.end(); it++)
     {
-        if ((uint64_t)it->second == vtblAdr)
+        spdlog::debug("orig: {:016X}", it->second);
+        spdlog::debug("cur: {:016X}", vtblAdr);
+        if (it->second == vtblAdr)
+        {
+            WidgetControllersOrigInitHooks[clsName] = WidgetControllersOrigInitHooks[it->first];
+            WidgetControllersOrigDestroyHooks[clsName] = WidgetControllersOrigDestroyHooks[it->first];
             return;
+        }
     }
     WidgetControllersOrigInitHooks[clsName] = (HookFunction)pvtbl[27];
     WidgetControllersOrigDestroyHooks[clsName] = (HookFunction)pvtbl[28];
-    
+    WidgetControllersOrigInitRelAdr[clsName] = vtblAdr;
     DWORD oldRw;
     if (VirtualProtect((void*)pvtbl, 0x100, PAGE_EXECUTE_READWRITE, &oldRw))
     {
@@ -191,4 +200,54 @@ std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetControll
         }
     }
     return res;
+}
+
+
+void CyberEyeTracking::Workers::BaseInkWidgetController::SetRootOpacity(float value)
+{
+    decltype(GetScriptObjects()) copy = GetScriptObjects();
+
+    for (auto& scriptable : copy)
+    {
+        if (*(uint64_t*)scriptable == 0)
+        {
+            spdlog::debug("{} null vtbl", scriptable->GetType()->name.ToString());
+            continue;
+        }
+
+        if (scriptable->ref.instance && scriptable->ref.GetUseCount())
+        {
+            ScriptableHandle sh(scriptable); // auto-share_from_this
+        }
+        if (!scriptable)
+            return;
+
+        auto rootWidgetFunc = _inkWidgetControllerCls->GetFunction("GetRootWidget");
+
+        auto pWH = scriptable->ExecuteFunction<RED4ext::WeakHandle<RED4ext::IScriptable>>("GetRootWidget", nullptr);
+
+        if (pWH)
+        {
+            auto inkWidget = pWH->Lock();
+            if (inkWidget)
+            {
+                inkWidget->ExecuteFunction("SetOpacity", value);
+            }
+            else
+            {
+                spdlog::debug("couldn't lock HPBar whandle");
+            }
+        }
+    }
+}
+
+
+void CyberEyeTracking::Workers::BaseInkWidgetController::HideWidget()
+{
+    SetRootOpacity(OPACITY_HIDE);
+}
+
+void CyberEyeTracking::Workers::BaseInkWidgetController::ShowWidget()
+{
+    SetRootOpacity(1);
 }

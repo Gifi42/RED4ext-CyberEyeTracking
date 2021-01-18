@@ -7,12 +7,14 @@
 
 #include <Workers/HealthBarWorker.hpp>
 #include <Workers/MinimapWorker.hpp>
+#include <Workers/QuestTrackerWorker.hpp>
 #include <EyeTracker.hpp>
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
 CyberEyeTracking::Workers::HealthBarWorker _healthBarWorker;
 CyberEyeTracking::Workers::MinimapWorker _minimapWorker;
+CyberEyeTracking::Workers::QuestTrackerWorker _questWorker;
 
 CyberEyeTracking::EyeTracker _eyeTracker;
 
@@ -41,6 +43,7 @@ RED4EXT_EXPORT void OnBaseInitialization()
     InitializeLogger(L"");
     _healthBarWorker = CyberEyeTracking::Workers::HealthBarWorker();
     _minimapWorker = CyberEyeTracking::Workers::MinimapWorker();
+    _questWorker = CyberEyeTracking::Workers::QuestTrackerWorker();
     _eyeTracker = CyberEyeTracking::EyeTracker();
 }
 
@@ -124,6 +127,7 @@ RED4EXT_EXPORT void OnUpdate()
     {
         _healthBarWorker.Init();
         _minimapWorker.Init();
+        _questWorker.Init();
         hooked = true;
     }
     if (!hooked)
@@ -138,22 +142,31 @@ RED4EXT_EXPORT void OnUpdate()
         if (x >= 0 && x <= 0.25 && //(0-480)
             y >=0  && y <= 0.165) // (0-110)
         {
-            _healthBarWorker.ShowHPBar();
+            _healthBarWorker.ShowWidget();
         }
         else
         {
-            _healthBarWorker.HideHPBar();
-            _minimapWorker.HideMiniMap();
+            _healthBarWorker.HideWidget();
         }
 
         if (x >= 0.833 && x <= 1      // (1600-1920)
             && y >= 0 && y <= 0.3055) // (0-330)
         {
-            _minimapWorker.ShowMiniMap();
+            _minimapWorker.ShowWidget();
         }
         else
         {
-            _minimapWorker.HideMiniMap();
+            _minimapWorker.HideWidget();
+        }
+
+        if (x >= 0.786458333 && x <= 1                     // (1510-1920)
+            && y >= 0.35185185 && y <= 0.5555555555555556) // (380-600)
+        {
+            _questWorker.ShowWidget();
+        }
+        else
+        {
+            _questWorker.HideWidget();
         }
     }
     

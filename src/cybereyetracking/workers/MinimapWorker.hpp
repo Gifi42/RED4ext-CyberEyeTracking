@@ -14,7 +14,5 @@ namespace CyberEyeTracking::Workers
         ~MinimapWorker() = default;
 
         void Init();
-        void HideMiniMap();
-        void ShowMiniMap();
     };
 }
