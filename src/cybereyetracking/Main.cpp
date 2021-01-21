@@ -10,6 +10,7 @@
 #include <Workers/WantedBarWorker.hpp>
 #include <Workers/QuestTrackerWorker.hpp>
 #include <Workers/HotkeysWidgetWorker.hpp>
+#include <workers/LoadingGameWorker.hpp>
 
 #include <EyeTracker.hpp>
 
@@ -20,12 +21,16 @@ CyberEyeTracking::Workers::MinimapWorker _minimapWorker;
 CyberEyeTracking::Workers::WantedBarWorker _wantedBarWorker;
 CyberEyeTracking::Workers::QuestTrackerWorker _questTrackerWidgetWorker;
 CyberEyeTracking::Workers::HotkeysWidgetWorker _hotkeysWidgetWorker;
+CyberEyeTracking::Workers::LoadingGameWorker _initialLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkInitialLoadingScreenLogicController");
+CyberEyeTracking::Workers::LoadingGameWorker _defaultLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkDefaultLoadingScreenLogicController");
+CyberEyeTracking::Workers::LoadingGameWorker _fasttravelLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkFastTravelLoadingScreenLogicController");
+CyberEyeTracking::Workers::LoadingGameWorker _splashscreenLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkSplashScreenLoadingScreenLogicController");
 
 CyberEyeTracking::EyeTracker _eyeTracker;
 
+RED4ext::WeakHandle<RED4ext::IScriptable> sysHandlers;
 RED4ext::CClass* scriptGameInstanceCls;
-
-float _gameTimeStamp;
+RED4ext::CClass* inkMenuScenarioCls;
 
 void InitializeLogger(std::filesystem::path aRoot)
 {
@@ -116,12 +121,14 @@ void LogHandle(RED4ext::HandleBase* handle)
 RED4EXT_EXPORT void OnUpdate()
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
+    static auto timeLoadingCheck = std::chrono::high_resolution_clock::now();
     static bool initialized = false;
     static bool trackerFound = false;
 
     auto now = std::chrono::high_resolution_clock::now();
     auto static gameInstance = RED4ext::CGameEngine::Get()->framework->gameInstance;
     using namespace std::chrono_literals;
+    auto rtti = RED4ext::CRTTISystem::Get();
 
     if (!trackerFound)
     {
@@ -132,7 +139,7 @@ RED4EXT_EXPORT void OnUpdate()
         trackerFound = true;
         return;
     }        
-
+   
     if ((now - timeStart) >= 10s && !initialized)
     {
         _healthBarWorker.Init();
@@ -140,26 +147,49 @@ RED4EXT_EXPORT void OnUpdate()
         _wantedBarWorker.Init();
         _questTrackerWidgetWorker.Init();
         _hotkeysWidgetWorker.Init();
-        
+        _initialLoadingWorker.Init();
+        _defaultLoadingWorker.Init();
+        _splashscreenLoadingWorker.Init();
+        _fasttravelLoadingWorker.Init();
+
+        inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
+        scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
+
         initialized = true;
     }
     if (!initialized)
         return;
     
-    /*float gameTS = 0;
-    
-    RED4ext::ExecuteFunction("gameTimeSystem", "GetGameTimeStamp", &gameTS, {});
+    RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
-    bool gamePaused = gameTS == 43200 || gameTS == _gameTimeStamp;
-    if (gamePaused)
+    auto instance = sysHandlers.Lock();
+    auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
+    if (!gamePaused.has_value() || gamePaused.value())
     {
-        spdlog::debug(gameTS);
-         return;
+        return;
     }
-    
-    _gameTimeStamp = gameTS;*/
 
-    if ((now - timeStart) > 45s)
+    RED4ext::Handle<RED4ext::IScriptable> handle;
+    RED4ext::ExecuteGlobalFunction("GetPlayer;GameInstance", &handle, gameInstance);
+
+    if (!handle.instance)
+    {
+        timeLoadingCheck = std::chrono::high_resolution_clock::now();
+        return;
+    }
+
+    if ((now - timeLoadingCheck) < 10s)
+        return;
+
+    if (_initialLoadingWorker.Loading() || _defaultLoadingWorker.Loading() || _splashscreenLoadingWorker.Loading() ||
+        _fasttravelLoadingWorker.Loading())
+    {
+        timeLoadingCheck = std::chrono::high_resolution_clock::now();
+        spdlog::debug("Loading");
+        return;
+    }
+
+    if ((now - timeStart) > 35s)
     {
         float* pos = _eyeTracker.GetPos();
         float x = pos[0];
