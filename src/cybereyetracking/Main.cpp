@@ -5,22 +5,18 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#include <Workers/HealthBarWorker.hpp>
-#include <Workers/MinimapWorker.hpp>
-#include <Workers/WantedBarWorker.hpp>
-#include <Workers/QuestTrackerWorker.hpp>
-#include <Workers/HotkeysWidgetWorker.hpp>
+#include <Workers/BaseInkWidgetController.hpp>
 #include <workers/LoadingGameWorker.hpp>
 
 #include <EyeTracker.hpp>
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
-CyberEyeTracking::Workers::HealthBarWorker _healthBarWorker;
-CyberEyeTracking::Workers::MinimapWorker _minimapWorker;
-CyberEyeTracking::Workers::WantedBarWorker _wantedBarWorker;
-CyberEyeTracking::Workers::QuestTrackerWorker _questTrackerWidgetWorker;
-CyberEyeTracking::Workers::HotkeysWidgetWorker _hotkeysWidgetWorker;
+CyberEyeTracking::Workers::BaseInkWidgetController _healthBarWorker = CyberEyeTracking::Workers::BaseInkWidgetController("healthbarWidgetGameController");
+CyberEyeTracking::Workers::BaseInkWidgetController _minimapWorker = CyberEyeTracking::Workers::BaseInkWidgetController("gameuiMinimapContainerController");
+CyberEyeTracking::Workers::BaseInkWidgetController _wantedBarWorker = CyberEyeTracking::Workers::BaseInkWidgetController("WantedBarGameController");
+CyberEyeTracking::Workers::BaseInkWidgetController _questTrackerWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("QuestTrackerGameController");
+CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");;
 CyberEyeTracking::Workers::LoadingGameWorker _initialLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkInitialLoadingScreenLogicController");
 CyberEyeTracking::Workers::LoadingGameWorker _defaultLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkDefaultLoadingScreenLogicController");
 CyberEyeTracking::Workers::LoadingGameWorker _fasttravelLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkFastTravelLoadingScreenLogicController");
@@ -55,12 +51,7 @@ void InitializeLogger(std::filesystem::path aRoot)
 RED4EXT_EXPORT void OnBaseInitialization()
 {
     InitializeLogger(L"");
-    _healthBarWorker = CyberEyeTracking::Workers::HealthBarWorker();
-    _minimapWorker = CyberEyeTracking::Workers::MinimapWorker();
-    _wantedBarWorker = CyberEyeTracking::Workers::WantedBarWorker();
-    _questTrackerWidgetWorker = CyberEyeTracking::Workers::QuestTrackerWorker();
-    _hotkeysWidgetWorker = CyberEyeTracking::Workers::HotkeysWidgetWorker();
-
+    
     _eyeTracker = CyberEyeTracking::EyeTracker();
 }
 
@@ -181,16 +172,28 @@ RED4EXT_EXPORT void OnUpdate()
     if ((now - timeLoadingCheck) < 10s)
         return;
 
-    if (_initialLoadingWorker.Loading() || _defaultLoadingWorker.Loading() || _splashscreenLoadingWorker.Loading() ||
-        _fasttravelLoadingWorker.Loading())
+    if (_initialLoadingWorker.Loading())
+    {
+        SHORT spacePress = GetAsyncKeyState(VK_SPACE);
+        if ((1 << 15) & spacePress)
+            timeLoadingCheck = std::chrono::high_resolution_clock::now();
+        
+        return;
+    }
+    if (_defaultLoadingWorker.Loading() || _splashscreenLoadingWorker.Loading() || _fasttravelLoadingWorker.Loading())
     {
         timeLoadingCheck = std::chrono::high_resolution_clock::now();
-        spdlog::debug("Loading");
         return;
     }
 
     if ((now - timeStart) > 35s)
     {
+        _initialLoadingWorker.Erase();
+        _defaultLoadingWorker.Erase();
+        _splashscreenLoadingWorker.Erase();
+        _fasttravelLoadingWorker.Erase();
+
+
         float* pos = _eyeTracker.GetPos();
         float x = pos[0];
         float y = pos[1];

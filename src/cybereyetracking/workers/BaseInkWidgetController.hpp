@@ -18,9 +18,10 @@ namespace CyberEyeTracking::Workers
     public:
         BaseInkWidgetController(char* ctrlrRTTIname, bool singleton = true);
         ~BaseInkWidgetController() = default;
-        void InitBase();
+        void Init();
         void HideWidget();
         void ShowWidget();
         bool Exist();
+        void Erase();
     };
 }

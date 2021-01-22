@@ -53,7 +53,7 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
     
     HookFunction initOrig = nullptr;
     const char* name = cls->name.ToString();
-
+    
     if (WidgetControllersOrigInitHooks.count(name))
     {
         initOrig = WidgetControllersOrigInitHooks[name];
@@ -84,7 +84,7 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
     {
         spdlog::debug("hooked InitCls but aScriptable is null");
     }
-    
+
     _syncMutex.unlock();
     return ret;
 }
@@ -128,7 +128,7 @@ CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(char
     _singleton = singleton;
 }
 
-void CyberEyeTracking::Workers::BaseInkWidgetController::InitBase()
+void CyberEyeTracking::Workers::BaseInkWidgetController::Init()
 {
     _rtti = RED4ext::CRTTISystem::Get();
     _inkWidgetControllerCls = _rtti->GetClass(_ctrlrRTTIname);
@@ -262,4 +262,13 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::ShowWidget()
 bool CyberEyeTracking::Workers::BaseInkWidgetController::Exist()
 {
     return GetScriptObjects().size() > 0;
+}
+
+void CyberEyeTracking::Workers::BaseInkWidgetController::Erase()
+{
+    auto str = _ctrlrRTTIname.ToString();
+    if (g_signletoneScriptObjects.count(str))
+    {
+        g_signletoneScriptObjects.erase(str);
+    }
 }

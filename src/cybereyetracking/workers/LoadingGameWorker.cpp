@@ -8,7 +8,7 @@ using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
 void CyberEyeTracking::Workers::LoadingGameWorker::Init()
 {
-    InitBase();
+    CyberEyeTracking::Workers::BaseInkWidgetController::Init();
 }
 
 bool CyberEyeTracking::Workers::LoadingGameWorker::Loading()

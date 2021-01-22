@@ -3,23 +3,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\cybereyetracking\Main.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\stdafx.cpp" />
-    <ClCompile Include="..\..\src\cybereyetracking\workers\HealthBarWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\MinimapWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\QuestTrackerWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\WantedBarWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\HotkeysWidgetWorker.cpp">
       <Filter>GameWorkers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.cpp">
@@ -28,23 +13,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\workers\HealthBarWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\MinimapWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\QuestTrackerWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\WantedBarWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\HotkeysWidgetWorker.hpp">
       <Filter>GameWorkers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.hpp">
