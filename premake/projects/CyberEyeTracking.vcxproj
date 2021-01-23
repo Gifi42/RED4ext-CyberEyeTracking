@@ -51,8 +51,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\build\debug\bin\plugins\</OutDir>
-    <IntDir>obj\Debug\CyberEyeTracking\</IntDir>
+    <OutDir>..\..\build\release\bin\plugins\</OutDir>
+    <IntDir>obj\Release\CyberEyeTracking\</IntDir>
     <TargetName>CyberEyeTracking</TargetName>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
@@ -74,14 +74,6 @@
       <ImportLibrary>..\..\build\debug\bin\plugins\CyberEyeTracking.lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <PreLinkEvent>
-      <Command>
-      </Command>
-    </PreLinkEvent>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
     <PreBuildEvent>
       <Command>xcopy /y /d "..\..\deps\tobii\tobii_stream_engine.lib" "$(OutDir)..\..\libs"</Command>
     </PreBuildEvent>
@@ -94,7 +86,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WINVER=0x0601;_WIN32_WINNT=0x0601;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;SPDLOG_COMPILED_LIB;SPDLOG_NO_THREAD_ID;SPDLOG_WCHAR_FILENAMES;SPDLOG_WCHAR_TO_UTF8_SUPPORT;SPDLOG_DISABLE_DEFAULT_LOGGER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\src\cybereyetracking;..\..\deps\renhook\src;..\..\deps\renhook\deps\zydis\include;..\..\deps\renhook\deps\zydis\src;..\..\deps\zyantific;..\..\deps\renhook\deps\zydis\dependencies\zycore\include;..\..\deps\spdlog\include;..\..\src\red4ext.sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src\cybereyetracking;..\..\deps\renhook\src;..\..\deps\renhook\deps\zydis\include;..\..\deps\renhook\deps\zydis\src;..\..\deps\zyantific;..\..\deps\renhook\deps\zydis\dependencies\zycore\include;..\..\deps\spdlog\include;..\..\deps\tobii;..\..\src\red4ext.sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.hpp</PrecompiledHeaderFile>
@@ -103,7 +95,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>Dbghelp.lib;RED4ext.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Dbghelp.lib;RED4ext.lib;tobii_stream_engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\build\release\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>..\..\build\release\bin\plugins\CyberEyeTracking.lib</ImportLibrary>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -111,6 +103,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
     </Link>
+	<PreBuildEvent>
+      <Command>xcopy /y /d "..\..\deps\tobii\tobii_stream_engine.lib" "$(OutDir)..\..\libs"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />

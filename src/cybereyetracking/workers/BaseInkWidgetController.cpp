@@ -122,7 +122,7 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
 
 bool CyberEyeTracking::Workers::BaseInkWidgetController::vtblHooked = false;
 
-CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(char* ctrlrRTTIname, bool singleton)
+CyberEyeTracking::Workers::BaseInkWidgetController::BaseInkWidgetController(const char* ctrlrRTTIname, bool singleton)
 {
     _ctrlrRTTIname = RED4ext::CName(ctrlrRTTIname);
     _singleton = singleton;

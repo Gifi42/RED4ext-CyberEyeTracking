@@ -16,7 +16,7 @@ namespace CyberEyeTracking::Workers
         bool CheckScriptObject(RED4ext::IScriptable* scriptObject);
         void SetRootOpacity(float value);
     public:
-        BaseInkWidgetController(char* ctrlrRTTIname, bool singleton = true);
+        BaseInkWidgetController(const char* ctrlrRTTIname, bool singleton = true);
         ~BaseInkWidgetController() = default;
         void Init();
         void HideWidget();
