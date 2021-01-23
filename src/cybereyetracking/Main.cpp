@@ -154,6 +154,9 @@ RED4EXT_EXPORT void OnUpdate()
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
     auto instance = sysHandlers.Lock();
+    if (!instance)
+        return;
+
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
     if (!gamePaused.has_value() || gamePaused.value())
     {
