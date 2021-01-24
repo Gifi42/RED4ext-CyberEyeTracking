@@ -185,7 +185,8 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::Init()
 
 bool CyberEyeTracking::Workers::BaseInkWidgetController::CheckScriptObject(RED4ext::IScriptable* scriptObject)
 {
-    return scriptObject->unk18 >= 0 && scriptObject->ref.instance != nullptr && scriptObject->ref.GetUseCount() > 0 &&
+    return scriptObject->unk18 >= 0 && scriptObject->valueHolder != nullptr && scriptObject->ref.instance != nullptr &&
+           scriptObject->ref.GetUseCount() > 0 &&
            (uint64_t)scriptObject->ref.instance != 0x00000000ffffffff && scriptObject->classType != nullptr &&
            _inkWidgetControllerCls->name == scriptObject->classType->name;
 }
@@ -242,7 +243,7 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::SetRootOpacity(float va
             }
             else
             {
-                spdlog::debug("couldn't lock HPBar whandle");
+                spdlog::debug("couldn't lock root inkWidget whandle");
             }
         }
     }

@@ -39,8 +39,8 @@ uintptr_t RED4ext::Utils::FindPattern(std::vector<uint8_t> aPattern, size_t aExp
 
         stream << L"\n\nThe process will be terminated.";
         message = stream.str();
-
-        MessageBox(nullptr, message.c_str(), L"RED4ext", MB_OK | MB_ICONERROR);
+        
+        //MessageBox(nullptr, message.c_str(), L"RED4ext", MB_OK | MB_ICONERROR);
         ExitProcess(1);
     }
 

@@ -172,7 +172,7 @@ RED4EXT_EXPORT void OnUpdate()
         return;
     }
 
-    if ((now - timeLoadingCheck) < 10s)
+    if ((now - timeLoadingCheck) < 6s)
         return;
 
     if (_initialLoadingWorker.Loading())
@@ -189,7 +189,7 @@ RED4EXT_EXPORT void OnUpdate()
         return;
     }
 
-    if ((now - timeStart) > 35s)
+    if ((now - timeStart) > 30s)
     {
         _initialLoadingWorker.Erase();
         _defaultLoadingWorker.Erase();
@@ -201,7 +201,7 @@ RED4EXT_EXPORT void OnUpdate()
         float x = pos[0];
         float y = pos[1];
 
-        // ================ CLEAR UI ==============
+        // ================ CLEAN UI ==============
         if (x >= 0 && x <= 0.25 && //(0-480)
             y >=0  && y <= 0.165) // (0-110)
         {
