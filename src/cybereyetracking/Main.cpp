@@ -17,10 +17,6 @@ CyberEyeTracking::Workers::BaseInkWidgetController _minimapWorker = CyberEyeTrac
 CyberEyeTracking::Workers::BaseInkWidgetController _wantedBarWorker = CyberEyeTracking::Workers::BaseInkWidgetController("WantedBarGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _questTrackerWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("QuestTrackerGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");;
-CyberEyeTracking::Workers::LoadingGameWorker _initialLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkInitialLoadingScreenLogicController");
-CyberEyeTracking::Workers::LoadingGameWorker _defaultLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkDefaultLoadingScreenLogicController");
-CyberEyeTracking::Workers::LoadingGameWorker _fasttravelLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkFastTravelLoadingScreenLogicController");
-CyberEyeTracking::Workers::LoadingGameWorker _splashscreenLoadingWorker = CyberEyeTracking::Workers::LoadingGameWorker("inkSplashScreenLoadingScreenLogicController");
 
 CyberEyeTracking::EyeTracker _eyeTracker;
 
@@ -112,7 +108,6 @@ void LogHandle(RED4ext::HandleBase* handle)
 RED4EXT_EXPORT void OnUpdate()
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
-    static auto timeLoadingCheck = std::chrono::high_resolution_clock::now();
     static bool initialized = false;
     static bool trackerFound = false;
 
@@ -138,17 +133,13 @@ RED4EXT_EXPORT void OnUpdate()
         _wantedBarWorker.Init();
         _questTrackerWidgetWorker.Init();
         _hotkeysWidgetWorker.Init();
-        _initialLoadingWorker.Init();
-        _defaultLoadingWorker.Init();
-        _splashscreenLoadingWorker.Init();
-        _fasttravelLoadingWorker.Init();
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
 
         initialized = true;
     }
-    if (!initialized)
+    if (!initialized || _wantedBarWorker.ObjectsCount() == 0)
         return;
     
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
@@ -163,40 +154,8 @@ RED4EXT_EXPORT void OnUpdate()
         return;
     }
 
-    RED4ext::Handle<RED4ext::IScriptable> handle;
-    RED4ext::ExecuteGlobalFunction("GetPlayer;GameInstance", &handle, gameInstance);
-
-    if (!handle.instance)
-    {
-        timeLoadingCheck = std::chrono::high_resolution_clock::now();
-        return;
-    }
-
-    if ((now - timeLoadingCheck) < 6s)
-        return;
-
-    if (_initialLoadingWorker.Loading())
-    {
-        SHORT spacePress = GetAsyncKeyState(VK_SPACE);
-        if ((1 << 15) & spacePress)
-            timeLoadingCheck = std::chrono::high_resolution_clock::now();
-        
-        return;
-    }
-    if (_defaultLoadingWorker.Loading() || _splashscreenLoadingWorker.Loading() || _fasttravelLoadingWorker.Loading())
-    {
-        timeLoadingCheck = std::chrono::high_resolution_clock::now();
-        return;
-    }
-
     if ((now - timeStart) > 30s)
     {
-        _initialLoadingWorker.Erase();
-        _defaultLoadingWorker.Erase();
-        _splashscreenLoadingWorker.Erase();
-        _fasttravelLoadingWorker.Erase();
-
-
         float* pos = _eyeTracker.GetPos();
         float x = pos[0];
         float y = pos[1];

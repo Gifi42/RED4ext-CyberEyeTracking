@@ -273,3 +273,9 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::Erase()
         g_signletoneScriptObjects.erase(str);
     }
 }
+
+
+int CyberEyeTracking::Workers::BaseInkWidgetController::ObjectsCount()
+{
+    return GetScriptObjects().size();
+}

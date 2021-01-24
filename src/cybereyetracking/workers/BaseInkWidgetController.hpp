@@ -23,5 +23,6 @@ namespace CyberEyeTracking::Workers
         void ShowWidget();
         bool Exist();
         void Erase();
+        int ObjectsCount();
     };
 }
