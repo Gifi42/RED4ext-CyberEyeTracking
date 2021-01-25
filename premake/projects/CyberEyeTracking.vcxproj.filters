@@ -10,6 +10,10 @@
     <ClCompile Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.cpp">
       <Filter>GameWorkers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.cpp">
+      <Filter>GameWorkers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
@@ -20,6 +24,10 @@
     <ClInclude Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.hpp">
       <Filter>GameWorkers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.hpp">
+      <Filter>GameWorkers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cybereyetracking\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameWorkers">

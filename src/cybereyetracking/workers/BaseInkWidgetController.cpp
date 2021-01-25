@@ -101,10 +101,10 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
     if (g_singletonClasses[name])
     {
         g_signletoneScriptObjects[name] = nullptr;
+        spdlog::debug("destroy {}", cls->name.ToString());
     }
     else if (g_FindScriptObject(aMemory))
     {
-        spdlog::debug("destroy {}", cls->name.ToString());
         g_scriptObjects.erase(aMemory);
     }
     

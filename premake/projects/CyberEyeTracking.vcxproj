@@ -103,15 +103,17 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
     </Link>
-	<PreBuildEvent>
+    <PreBuildEvent>
       <Command>xcopy /y /d "..\..\deps\tobii\tobii_stream_engine.lib" "$(OutDir)..\..\libs"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\Utils.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
@@ -119,8 +121,10 @@
     <ClCompile Include="..\..\src\cybereyetracking\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\Utils.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Zycore.vcxproj">

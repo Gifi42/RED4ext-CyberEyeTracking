@@ -6,9 +6,10 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <Workers/BaseInkWidgetController.hpp>
-#include <workers/LoadingGameWorker.hpp>
+#include <workers/RadialWheelWorker.hpp>
 
 #include <EyeTracker.hpp>
+#include "Utils.hpp"
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
@@ -16,7 +17,8 @@ CyberEyeTracking::Workers::BaseInkWidgetController _healthBarWorker = CyberEyeTr
 CyberEyeTracking::Workers::BaseInkWidgetController _minimapWorker = CyberEyeTracking::Workers::BaseInkWidgetController("gameuiMinimapContainerController");
 CyberEyeTracking::Workers::BaseInkWidgetController _wantedBarWorker = CyberEyeTracking::Workers::BaseInkWidgetController("WantedBarGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _questTrackerWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("QuestTrackerGameController");
-CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");;
+CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");
+CyberEyeTracking::Workers::RadialWheelWorker _radialWheelWorker =  CyberEyeTracking::Workers::RadialWheelWorker();
 
 CyberEyeTracking::EyeTracker _eyeTracker;
 
@@ -133,6 +135,7 @@ RED4EXT_EXPORT void OnUpdate()
         _wantedBarWorker.Init();
         _questTrackerWidgetWorker.Init();
         _hotkeysWidgetWorker.Init();
+        _radialWheelWorker.Init();
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
@@ -153,6 +156,9 @@ RED4EXT_EXPORT void OnUpdate()
     {
         return;
     }
+
+    if ((now - timeStart) < 60s)
+        return;
 
     if ((now - timeStart) > 30s)
     {
@@ -210,6 +216,10 @@ RED4EXT_EXPORT void OnUpdate()
         {
             _hotkeysWidgetWorker.HideWidget();
         }
+
+        // ================ WHEEL SELECT ==============
+        float angle = CyberEyeTracking::Math::GetAngle(x, y);
+        _radialWheelWorker.SetAngle(angle);
     }
     
 }
