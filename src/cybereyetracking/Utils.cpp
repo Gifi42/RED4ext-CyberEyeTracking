@@ -39,3 +39,8 @@ float CyberEyeTracking::Math::GetAngle(float x, float y)
 
     return betta;
 }
+
+float CyberEyeTracking::Math::GetLinearCurve(float a, float b, float x)
+{
+    return a - b * x;
+}

@@ -19,6 +19,6 @@ namespace CyberEyeTracking::Workers
         ~RadialWheelWorker() = default;
 
         void Init();
-        void SetAngle(float angle);
+        bool SetAngle(float angle);
     };
 }

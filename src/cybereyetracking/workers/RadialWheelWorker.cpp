@@ -17,14 +17,14 @@ void CyberEyeTracking::Workers::RadialWheelWorker::Init()
     _updatePointer = _inkWidgetControllerCls->GetFunction("UpdatePointer");
 }
 
-void CyberEyeTracking::Workers::RadialWheelWorker::SetAngle(float angle)
+bool CyberEyeTracking::Workers::RadialWheelWorker::SetAngle(float angle)
 {
     for (auto& so : GetScriptObjects())
     {
         bool isAcitve = _isActiveProp->GetValue<bool>(so);
 
         if (!isAcitve)
-            return;
+            return false;
 
         std::vector<RED4ext::CStackType> args;
 
@@ -46,6 +46,9 @@ void CyberEyeTracking::Workers::RadialWheelWorker::SetAngle(float angle)
             args.emplace_back(nullptr, &angle);
 
             RED4ext::ExecuteFunction(so, _updatePointer, nullptr, args);
+            return true;
         }
     }
+
+    return false;
 }
