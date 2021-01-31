@@ -13,9 +13,22 @@
 #include <EyeTracker.hpp>
 #include "Utils.hpp"
 
-#define CAMERA_PITCH_LOOK_START 0.1 // Screen border where we start pitching camera 0.0557291666666667
-#define CAMERA_PITCH_LINEAR_CURVE_A 0.2
-#define CAMERA_PITCH_LINEAR_CURVE_B 1.999999
+#define CAMERA_PITCH_LOOK_START 0.123 // Screen border where we start pitching camera
+//#define CAMERA_PITCH_LINEAR_CURVE_A 0.2
+//#define CAMERA_PITCH_LINEAR_CURVE_B 1.999999
+//
+//#define CAMERA_PITCH_EXP_A -129.053
+//#define CAMERA_PITCH_EXP_B -129.274
+//#define CAMERA_PITCH_EXP_POW -0.016441
+//
+//#define CAMERA_PITCH_LN_A 0.0753882
+//#define CAMERA_PITCH_LN_B 0.418996
+//#define CAMERA_PITCH_LN_C -3.94588
+//#define CAMERA_PITCH_LN_D 0.276185
+
+#define CAMERA_PITCH_PARABOLA_A 10.3802
+#define CAMERA_PITCH_PARABOLA_B -3.05281
+#define CAMERA_PITCH_PARABOLA_C 0.218785
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
@@ -196,6 +209,7 @@ RED4EXT_EXPORT void OnUpdate()
         else if (y < 0)
             y = 0;
 
+        bool resetPitch = false;
          // ================ WHEEL SELECT ==============
         if (_radialWheelWorker.ObjectsCount() > 0)
         {
@@ -211,7 +225,7 @@ RED4EXT_EXPORT void OnUpdate()
                 y >= 0 && y <= 0.165)  // (0-110)
             {
                 _healthBarWorker.ShowWidget();
-                return;
+                resetPitch = true;
             }
             else
             {
@@ -222,7 +236,7 @@ RED4EXT_EXPORT void OnUpdate()
                 && y >= 0.037037 && y <= 0.3055)  // (41-330)
             {
                 _minimapWorker.ShowWidget();
-                return;
+                resetPitch = true;
             }
             else
             {
@@ -233,7 +247,7 @@ RED4EXT_EXPORT void OnUpdate()
                 && y >= 0.055555555 && y <= 0.25)  // (60-270)
             {
                 _wantedBarWorker.ShowWidget();
-                return;
+                resetPitch = true;
             }
             else
             {
@@ -244,7 +258,7 @@ RED4EXT_EXPORT void OnUpdate()
                 && y >= 0.35185185 && y <= 0.5) // (380-540)
             {
                 _questTrackerWidgetWorker.ShowWidget();
-                return;
+                resetPitch = true;
             }
             else
             {
@@ -255,7 +269,7 @@ RED4EXT_EXPORT void OnUpdate()
                 && y >= 0.8703703 && y <= 1)     // (940-1080)
             {
                 _hotkeysWidgetWorker.ShowWidget();
-                return;
+                resetPitch = true;
             }
             else
             {
@@ -271,22 +285,25 @@ RED4EXT_EXPORT void OnUpdate()
 
         float pitchX = 0;
         float pitchY = 0;
-                  
-        if (pitchLeft)
+
+        if (!resetPitch)
         {
-            pitchX = CyberEyeTracking::Math::GetLinearCurve(CAMERA_PITCH_LINEAR_CURVE_A, CAMERA_PITCH_LINEAR_CURVE_B, x);
-        }
-        else if (pitchRight)
-        {
-            pitchX = -CyberEyeTracking::Math::GetLinearCurve(CAMERA_PITCH_LINEAR_CURVE_A, CAMERA_PITCH_LINEAR_CURVE_B, 1 - x);
-        }
-        if (pitchUp)
-        {
-            pitchY = CyberEyeTracking::Math::GetLinearCurve(CAMERA_PITCH_LINEAR_CURVE_A, CAMERA_PITCH_LINEAR_CURVE_B, y);
-        }
-        else if (pitchDown)
-        {
-            pitchY = -CyberEyeTracking::Math::GetLinearCurve(CAMERA_PITCH_LINEAR_CURVE_A, CAMERA_PITCH_LINEAR_CURVE_B, 1 - y);
+            if (pitchLeft)
+            {
+                pitchX = CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, x);
+            }
+            else if (pitchRight)
+            {
+                pitchX = -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - x);
+            }
+            if (pitchUp)
+            {
+                pitchY = CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, y);
+            }
+            else if (pitchDown)
+            {
+                pitchY = -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - y);
+            }
         }
         _cameraPitchWorker.SetPitch(pitchX, pitchY);
 

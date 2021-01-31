@@ -6,6 +6,7 @@
 #include "Utils.hpp"
 
 #define PI 3.1415926535
+#define EXP 2.71828
 
 float lengthSquare(std::pair<float, float> X, std::pair<float, float> Y)
 {
@@ -43,4 +44,20 @@ float CyberEyeTracking::Math::GetAngle(float x, float y)
 float CyberEyeTracking::Math::GetLinearCurve(float a, float b, float x)
 {
     return a - b * x;
+}
+//
+//float CyberEyeTracking::Math::GetParametrizedExpPow(float a, float b, float expPow, float x)
+//{
+//    return a - b * pow(EXP, expPow*x);
+//}
+//
+//float CyberEyeTracking::Math::GetParametrizedLn(float a, float b, float c, float d, float x)
+//{
+//    return a * log(b + c*x) + d;
+//}
+
+
+float CyberEyeTracking::Math::GetParametrizedParabola(float a, float b, float c, float x)
+{
+    return a * pow(x,2) + b*x + c;
 }
