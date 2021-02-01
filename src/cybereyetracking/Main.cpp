@@ -13,22 +13,11 @@
 #include <EyeTracker.hpp>
 #include "Utils.hpp"
 
-#define CAMERA_PITCH_LOOK_START 0.123 // Screen border where we start pitching camera
-//#define CAMERA_PITCH_LINEAR_CURVE_A 0.2
-//#define CAMERA_PITCH_LINEAR_CURVE_B 1.999999
-//
-//#define CAMERA_PITCH_EXP_A -129.053
-//#define CAMERA_PITCH_EXP_B -129.274
-//#define CAMERA_PITCH_EXP_POW -0.016441
-//
-//#define CAMERA_PITCH_LN_A 0.0753882
-//#define CAMERA_PITCH_LN_B 0.418996
-//#define CAMERA_PITCH_LN_C -3.94588
-//#define CAMERA_PITCH_LN_D 0.276185
+#define CAMERA_PITCH_LOOK_START 0.5 // 0.338 Screen border where we start pitching camera
 
-#define CAMERA_PITCH_PARABOLA_A 10.3802
-#define CAMERA_PITCH_PARABOLA_B -3.05281
-#define CAMERA_PITCH_PARABOLA_C 0.218785
+#define CAMERA_PITCH_PARABOLA_A 1
+#define CAMERA_PITCH_PARABOLA_B -1
+#define CAMERA_PITCH_PARABOLA_C 0.25
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
@@ -37,8 +26,13 @@ CyberEyeTracking::Workers::BaseInkWidgetController _minimapWorker = CyberEyeTrac
 CyberEyeTracking::Workers::BaseInkWidgetController _wantedBarWorker = CyberEyeTracking::Workers::BaseInkWidgetController("WantedBarGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _questTrackerWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("QuestTrackerGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");
+
 CyberEyeTracking::Workers::RadialWheelWorker _radialWheelWorker =  CyberEyeTracking::Workers::RadialWheelWorker();
+
 CyberEyeTracking::Workers::CameraPitchWorker _cameraPitchWorker = CyberEyeTracking::Workers::CameraPitchWorker();
+
+CyberEyeTracking::Workers::BaseInkWidgetController _dialogWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("dialogWidgetGameController");
+
 
 CyberEyeTracking::EyeTracker _eyeTracker;
 
@@ -127,16 +121,12 @@ void LogHandle(RED4ext::HandleBase* handle)
     }
 }
 
-RED4ext::IScriptable* query;
-
-struct Quaternion
+float GetCamPitch(float pos, bool negative)
 {
-    float i;
-    float j;
-    float k;
-    float r;
-};
-
+    return negative ?
+        -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - pos) :
+        CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B,CAMERA_PITCH_PARABOLA_C, pos);
+}
 
 RED4EXT_EXPORT void OnUpdate()
 {    
@@ -168,13 +158,11 @@ RED4EXT_EXPORT void OnUpdate()
         _hotkeysWidgetWorker.Init();
         _radialWheelWorker.Init();
         _cameraPitchWorker.Init(gameInstance);
+        _dialogWorker.Init();
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
 
-        auto queryCls = rtti->GetClass("gameTargetSearchQuery");
-        query = queryCls->AllocInstance();
-        queryCls->InitCls(query);
         initialized = true;
     }
     if (!initialized)
@@ -183,7 +171,7 @@ RED4EXT_EXPORT void OnUpdate()
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
     auto instance = sysHandlers.Lock();
-    if (!instance)
+    if (!instance || _wantedBarWorker.ObjectsCount() == 0)
         return;
 
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
@@ -219,65 +207,59 @@ RED4EXT_EXPORT void OnUpdate()
         }
 
         // ================ CLEAN UI ==============
-        if (_wantedBarWorker.ObjectsCount() > 0)
+        
+        if (x >= 0 && x <= 0.25 && //(0-480)
+            y >= 0 && y <= 0.165)  // (0-110)
         {
-            if (x >= 0 && x <= 0.25 && //(0-480)
-                y >= 0 && y <= 0.165)  // (0-110)
-            {
-                _healthBarWorker.ShowWidget();
-                resetPitch = true;
-            }
-            else
-            {
-                _healthBarWorker.HideWidget();
-            }
+            _healthBarWorker.ShowWidget();
+        }
+        else
+        {
+            _healthBarWorker.HideWidget();
+        }
 
-            if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
-                && y >= 0.037037 && y <= 0.3055)  // (41-330)
-            {
-                _minimapWorker.ShowWidget();
-                resetPitch = true;
-            }
-            else
-            {
-                _minimapWorker.HideWidget();
-            }
+        if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
+            && y >= 0.037037 && y <= 0.3055)  // (41-330)
+        {
+            _minimapWorker.ShowWidget();
+        }
+        else
+        {
+            _minimapWorker.HideWidget();
+        }
 
-            if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
-                && y >= 0.055555555 && y <= 0.25)  // (60-270)
-            {
-                _wantedBarWorker.ShowWidget();
-                resetPitch = true;
-            }
-            else
-            {
-                _wantedBarWorker.HideWidget();
-            }
+        if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
+            && y >= 0.055555555 && y <= 0.25)  // (60-270)
+        {
+            _wantedBarWorker.ShowWidget();
+        }
+        else
+        {
+            _wantedBarWorker.HideWidget();
+        }
 
-            if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
-                && y >= 0.35185185 && y <= 0.5) // (380-540)
-            {
-                _questTrackerWidgetWorker.ShowWidget();
-                resetPitch = true;
-            }
-            else
-            {
-                _questTrackerWidgetWorker.HideWidget();
-            }
+        if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
+            && y >= 0.35185185 && y <= 0.5) // (380-540)
+        {
+            _questTrackerWidgetWorker.ShowWidget();
+        }
+        else
+        {
+            _questTrackerWidgetWorker.HideWidget();
+        }
 
-            if (x >= 0.03125 && x <= 0.161458333 // (60-310)
-                && y >= 0.8703703 && y <= 1)     // (940-1080)
-            {
-                _hotkeysWidgetWorker.ShowWidget();
-                resetPitch = true;
-            }
-            else
-            {
-                _hotkeysWidgetWorker.HideWidget();
-            }
+        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+            && y >= 0.8703703 && y <= 1)     // (940-1080)
+        {
+            _hotkeysWidgetWorker.ShowWidget();
+        }
+        else
+        {
+            _hotkeysWidgetWorker.HideWidget();
         }
 
         // ================ CAMERA PITCH ==============
+
         bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
         bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
         bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
@@ -285,27 +267,24 @@ RED4EXT_EXPORT void OnUpdate()
 
         float pitchX = 0;
         float pitchY = 0;
+        
+        pitchX = GetCamPitch(x, pitchRight);
+        pitchY = GetCamPitch(y, pitchDown);
+        
+        _cameraPitchWorker.SetPitch(pitchX, pitchY);
 
-        if (!resetPitch)
+        // ================ DIALOGUE SELECT ==============
+
+        for (auto& so : _dialogWorker.GetScriptObjects())
         {
-            if (pitchLeft)
+            auto cls = rtti->GetClass("dialogWidgetGameController");
+            auto selectedIndex = cls->GetProperty("selectedIndex");
+            auto idx = selectedIndex->GetValue<int>(so);
+            if (idx >= 0)
             {
-                pitchX = CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, x);
-            }
-            else if (pitchRight)
-            {
-                pitchX = -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - x);
-            }
-            if (pitchUp)
-            {
-                pitchY = CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, y);
-            }
-            else if (pitchDown)
-            {
-                pitchY = -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - y);
+                selectedIndex->SetValue(so, 1);
             }
         }
-        _cameraPitchWorker.SetPitch(pitchX, pitchY);
 
         // ================ LOOK AT LOOT ==============
        /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;

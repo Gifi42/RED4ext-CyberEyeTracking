@@ -13,14 +13,33 @@ void CyberEyeTracking::Workers::CameraPitchWorker::Init(RED4ext::GameInstance* g
     _fGetLocalOrientation = _inkWidgetControllerCls->GetFunction("GetLocalOrientation");
     _fSetLocalOrientation = _inkWidgetControllerCls->GetFunction("SetLocalOrientation");
 
-    _quanterionCls = _rtti->GetClass("Quaternion");
-    _initQuan = _quanterionCls->AllocInstance();
+    _quaternionCls = _rtti->GetClass("Quaternion");
+    _iProp = _quaternionCls->GetProperty("i");
+    _jProp = _quaternionCls->GetProperty("j");
+    _kProp = _quaternionCls->GetProperty("k");
+    _rProp = _quaternionCls->GetProperty("r");
 
-    _fSetZRot = _quanterionCls->GetFunction("SetZRot");
-    _fSetXRot = _quanterionCls->GetFunction("SetXRot");
+    _fSetZRot = _quaternionCls->GetFunction("SetZRot");
+    _fSetXRot = _quaternionCls->GetFunction("SetXRot");
 
     _gameInstance = gameInstance;
     _playerPuppetCls = _rtti->GetClass("PlayerPuppet");
+}
+
+RED4ext::IScriptable* CyberEyeTracking::Workers::CameraPitchWorker::RotateQuat(float value, bool isY)
+{
+    std::vector<RED4ext::CStackType> args;
+    auto quat = _quaternionCls->AllocInstance();
+    args.emplace_back(nullptr, quat);
+    args.emplace_back(nullptr, &value);
+    RED4ext::ExecuteFunction(quat, isY ? _fSetXRot : _fSetZRot, nullptr, args);
+
+    _i += _iProp->GetValue<float>(quat);
+    _j += _jProp->GetValue<float>(quat);
+    _k += _kProp->GetValue<float>(quat);
+    _r += _rProp->GetValue<float>(quat);
+
+    return quat;
 }
 
 void CyberEyeTracking::Workers::CameraPitchWorker::SetPitch(float x, float y)
@@ -35,36 +54,32 @@ void CyberEyeTracking::Workers::CameraPitchWorker::SetPitch(float x, float y)
             return;
 
         auto cameraH = res.value();
-        
-        RED4ext::IScriptable* quan = _quanterionCls->AllocInstance();
 
+        _i = 0, _j = 0, _k = 0, _r = 0;
+        _quaternion = _quaternionCls->AllocInstance();
         std::vector<RED4ext::CStackType> args;
-        
-
         if (x != 0 || y != 0)
         {
             if (x != 0)
             {
-                args.emplace_back(nullptr, quan);
-                args.emplace_back(nullptr, &x);
-                RED4ext::ExecuteFunction(quan, _fSetZRot, nullptr, args);
+                RotateQuat(x, false);
             }
 
             if (y != 0)
             {
-                args.clear();
-                args.emplace_back(nullptr, quan);
-                args.emplace_back(nullptr, &y);
-                RED4ext::ExecuteFunction(quan, _fSetXRot, nullptr, args);
+                RotateQuat(y, true);
             }
 
-            args.clear();
-            args.emplace_back(nullptr, quan);
+            _iProp->SetValue(_quaternion, _i);
+            _jProp->SetValue(_quaternion, _j);
+            _kProp->SetValue(_quaternion, _k);
+            _rProp->SetValue(_quaternion, _r);
+            args.emplace_back(nullptr, _quaternion);
             RED4ext::ExecuteFunction(cameraH.GetPtr(), _fSetLocalOrientation, nullptr, args);
         }
         else
         {
-            args.emplace_back(nullptr, quan);
+            args.emplace_back(nullptr, _quaternion);
             RED4ext::ExecuteFunction(cameraH.GetPtr(), _fSetLocalOrientation, nullptr, args);
         }
         return;
