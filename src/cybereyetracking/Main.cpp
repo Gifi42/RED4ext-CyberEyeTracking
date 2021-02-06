@@ -8,6 +8,7 @@
 #include <Workers/BaseInkWidgetController.hpp>
 #include <Workers/RadialWheelWorker.hpp>
 #include <Workers/CameraPitchWorker.hpp>
+#include <Workers/DialogWorker.hpp>
 
 
 #include <EyeTracker.hpp>
@@ -18,6 +19,8 @@
 #define CAMERA_PITCH_PARABOLA_A 1
 #define CAMERA_PITCH_PARABOLA_B -1
 #define CAMERA_PITCH_PARABOLA_C 0.25
+
+#define CAMERA_PITCH_RESET_START 0.25
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
@@ -31,7 +34,7 @@ CyberEyeTracking::Workers::RadialWheelWorker _radialWheelWorker =  CyberEyeTrack
 
 CyberEyeTracking::Workers::CameraPitchWorker _cameraPitchWorker = CyberEyeTracking::Workers::CameraPitchWorker();
 
-CyberEyeTracking::Workers::BaseInkWidgetController _dialogWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("dialogWidgetGameController");
+CyberEyeTracking::Workers::DialogWorker _dialogWorker = CyberEyeTracking::Workers::DialogWorker();
 
 
 CyberEyeTracking::EyeTracker _eyeTracker;
@@ -128,6 +131,20 @@ float GetCamPitch(float pos, bool negative)
         CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B,CAMERA_PITCH_PARABOLA_C, pos);
 }
 
+static bool resetPitch = false;
+static float prevX = 0;
+static float prevY = 0;
+
+void StartResetPitch(float x, float y)
+{
+    if (resetPitch)
+        return;
+
+    resetPitch = true;
+    prevX = x;
+    prevY = y;
+}
+
 RED4EXT_EXPORT void OnUpdate()
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
@@ -197,7 +214,7 @@ RED4EXT_EXPORT void OnUpdate()
         else if (y < 0)
             y = 0;
 
-        bool resetPitch = false;
+        
          // ================ WHEEL SELECT ==============
         if (_radialWheelWorker.ObjectsCount() > 0)
         {
@@ -212,6 +229,7 @@ RED4EXT_EXPORT void OnUpdate()
             y >= 0 && y <= 0.165)  // (0-110)
         {
             _healthBarWorker.ShowWidget();
+            StartResetPitch(x, y);
         }
         else
         {
@@ -222,6 +240,7 @@ RED4EXT_EXPORT void OnUpdate()
             && y >= 0.037037 && y <= 0.3055)  // (41-330)
         {
             _minimapWorker.ShowWidget();
+            StartResetPitch(x, y);
         }
         else
         {
@@ -252,6 +271,7 @@ RED4EXT_EXPORT void OnUpdate()
             && y >= 0.8703703 && y <= 1)     // (940-1080)
         {
             _hotkeysWidgetWorker.ShowWidget();
+            StartResetPitch(x, y);
         }
         else
         {
@@ -267,24 +287,27 @@ RED4EXT_EXPORT void OnUpdate()
 
         float pitchX = 0;
         float pitchY = 0;
-        
+
+        if (resetPitch)
+        {
+            if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START
+                && y > CAMERA_PITCH_RESET_START && y < 1 - CAMERA_PITCH_RESET_START)
+            {
+                resetPitch = false;
+            }
+            else
+            {
+                x = prevX;
+                y = prevY;
+            }
+        }
         pitchX = GetCamPitch(x, pitchRight);
         pitchY = GetCamPitch(y, pitchDown);
         
         _cameraPitchWorker.SetPitch(pitchX, pitchY);
 
         // ================ DIALOGUE SELECT ==============
-
-        for (auto& so : _dialogWorker.GetScriptObjects())
-        {
-            auto cls = rtti->GetClass("dialogWidgetGameController");
-            auto selectedIndex = cls->GetProperty("selectedIndex");
-            auto idx = selectedIndex->GetValue<int>(so);
-            if (idx >= 0)
-            {
-                selectedIndex->SetValue(so, 1);
-            }
-        }
+        _dialogWorker.SetAngle(0);
 
         // ================ LOOK AT LOOT ==============
        /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;

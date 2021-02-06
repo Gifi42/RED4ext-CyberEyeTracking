@@ -113,6 +113,7 @@
     <ClInclude Include="..\..\src\cybereyetracking\Utils.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\CameraPitchWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\DialogWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.hpp" />
   </ItemGroup>
@@ -125,6 +126,7 @@
     <ClCompile Include="..\..\src\cybereyetracking\Utils.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\CameraPitchWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\DialogWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.cpp" />
   </ItemGroup>
