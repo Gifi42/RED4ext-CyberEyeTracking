@@ -278,6 +278,10 @@ RED4EXT_EXPORT void OnUpdate()
             _hotkeysWidgetWorker.HideWidget();
         }
 
+        // ================ DIALOGUE SELECT ==============
+        if (_dialogWorker.SelectAtPos(y))
+            return;
+
         // ================ CAMERA PITCH ==============
 
         bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
@@ -305,9 +309,6 @@ RED4EXT_EXPORT void OnUpdate()
         pitchY = GetCamPitch(y, pitchDown);
         
         _cameraPitchWorker.SetPitch(pitchX, pitchY);
-
-        // ================ DIALOGUE SELECT ==============
-        _dialogWorker.SetAngle(0);
 
         // ================ LOOK AT LOOT ==============
        /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;

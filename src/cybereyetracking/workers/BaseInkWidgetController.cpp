@@ -132,6 +132,8 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::Init()
 {
     _rtti = RED4ext::CRTTISystem::Get();
     _inkWidgetControllerCls = _rtti->GetClass(_ctrlrRTTIname);
+    _inkWidgetCls = _rtti->GetClass("inkWidget");
+    _getMarginF = _inkWidgetCls->GetFunction("GetMargin");
     bool exists = false;
     for (auto& x : g_inkWidgetControllersCls)
     {

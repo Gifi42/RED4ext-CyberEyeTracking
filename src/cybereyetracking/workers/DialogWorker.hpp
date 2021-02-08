@@ -14,15 +14,19 @@ namespace CyberEyeTracking::Workers
 
         RED4ext::CClass* _dialogHubLogicControllerCls;
         RED4ext::CClass* _dialogChoiceLogicControllerCls;
+        RED4ext::CClassFunction* _setSelectedF;
+        RED4ext::CClassFunction* _updateViewF;
+        RED4ext::CClassFunction* _updateColorsF;
+        RED4ext::CClassFunction* _animateSelectionF;
         
-
         int activeHubId = 0;
+        int selected = 0;
     public:
         DialogWorker()
             : BaseInkWidgetController("dialogWidgetGameController"){};
         ~DialogWorker() = default;
 
         void Init();
-        void SetAngle(float angle);
+        bool SelectAtPos(float yPos);
     };
 }

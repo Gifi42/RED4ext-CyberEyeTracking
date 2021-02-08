@@ -4,6 +4,9 @@
 #include "BaseInkWidgetController.hpp"
 #include "DialogWorker.hpp"
 
+#define SCALE_MUL 1.2
+#define PIXEL_OFFSET 19
+
 using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
 void CyberEyeTracking::Workers::DialogWorker::Init()
@@ -16,61 +19,137 @@ void CyberEyeTracking::Workers::DialogWorker::Init()
     _dhlcIdProp = _dialogHubLogicControllerCls->GetProperty("id");
     _itemControllersProp = _dialogHubLogicControllerCls->GetProperty("itemControllers");
     _dialogChoiceLogicControllerCls = _rtti->GetClass("DialogChoiceLogicController");
+    _setSelectedF = _dialogChoiceLogicControllerCls->GetFunction("SetSelected");
+    _updateViewF = _dialogChoiceLogicControllerCls->GetFunction("UpdateView");
+    _updateColorsF = _dialogChoiceLogicControllerCls->GetFunction("UpdateColors");
+    _animateSelectionF = _dialogChoiceLogicControllerCls->GetFunction("AnimateSelection");
 }
 
-void CyberEyeTracking::Workers::DialogWorker::SetAngle(float angle)
+struct Vector2
+{
+    float X;
+    float Y;
+};
+
+struct Margin
+{
+    float bottom;
+    float left;
+    float right;
+    float top;
+};
+
+bool CyberEyeTracking::Workers::DialogWorker::SelectAtPos(float yPos)
 {
     for (auto& so : GetScriptObjects())
     {
         activeHubId = _activeHubIdProp->GetValue<int>(so);
         if (activeHubId < 0)
-            return;
+        {
+            selected = 0;
+            return false;
+        }
 
         auto hubControllers = _hubControllersProp->GetValue<RED4ext::DynArray<RED4ext::WeakHandle<RED4ext::IScriptable>>>(so);
 
-         if (hubControllers.size == 0)
-            return;
+        if (hubControllers.size == 0)
+        {
+            selected = 0;
+            return false;
+        }
 
-         RED4ext::IScriptable* activeHubController;
-         for (auto& hubControllerWH : hubControllers)
-         {
-             auto hubControllerH = hubControllerWH.Lock();
-             if (_dhlcIdProp->GetValue<int>(hubControllerH.instance) == activeHubId)
-             {
-                 activeHubController = hubControllerH.GetPtr();
-                 break;
-             }
-         }
+        RED4ext::IScriptable* activeHubController;
+        for (auto& hubControllerWH : hubControllers)
+        {
+            auto hubControllerH = hubControllerWH.Lock();
+            if (_dhlcIdProp->GetValue<int>(hubControllerH.instance) == activeHubId)
+            {
+                activeHubController = hubControllerH.GetPtr();
+                break;
+            }
+        }
 
-         if (activeHubController == nullptr)
-             return;
+        if (activeHubController == nullptr)
+            return false;
 
-         auto itemControllersArr = _itemControllersProp->GetValue<RED4ext::DynArray<RED4ext::Handle<RED4ext::IScriptable>>>(activeHubController);
+        auto itemControllersArr = _itemControllersProp->GetValue<RED4ext::DynArray<RED4ext::Handle<RED4ext::IScriptable>>>(activeHubController);
 
-         if (itemControllersArr.size > 10)
-             return;
+        if (itemControllersArr.size < 2 || itemControllersArr.size > 6)
+            return false;
 
+        // x1: 2 = 777, 3 = 759, 4 = 742. offset = 18. height = 31. next = +34
+        // x1.2: 2 = 758 , 3 = 734, 4 = 710. offset = 24
+        float startPixel = 777;
+        if (SCALE_MUL != 1)
+            startPixel -= (18 * SCALE_MUL);
 
-         auto widgetCls = _rtti->GetClass("inkWidget");
-         auto getHeightF = widgetCls->GetFunction("GetHeight");
-         for (auto& itemH : itemControllersArr)
-         {
-             if (!itemH || !itemH.instance)
-                 continue;
+        float startOffset = (itemControllersArr.size - 2) * 18 * SCALE_MUL;
+        startPixel -= startOffset;
+        float startPos = startPixel / 1080;
+        if (yPos < startPos)
+            yPos = startPos;
+        //        args.emplace_back(true);
+        
+        auto selectedIndexProp = _inkWidgetControllerCls->GetProperty("selectedIndex");
+        int sc1 = 34 * SCALE_MUL;
+        int height = ((sc1)-34) + sc1; // x1 = 34. x1.2 = 46
+        for (int i = 0; i < itemControllersArr.size; ++i)
+        {
+            float curChoiceStart = startPixel + (i * height); // +8
+            float curChoiceEnd = (curChoiceStart + height) / 1080;
+            curChoiceStart /= 1080;
 
-             auto rootWidgetVal = itemH->ExecuteFunction<RED4ext::WeakHandle<RED4ext::IScriptable>>("GetRootWidget", nullptr);
-             if (!rootWidgetVal.has_value())
-                 continue;
+            /*if (i == itemControllersArr.size - 1 && selected == -1)
+                value = true;*/
 
-             RED4ext::WeakHandle<RED4ext::IScriptable> rootWidgetWH = rootWidgetVal.value();
+            if (yPos >= curChoiceStart && yPos <= curChoiceEnd)
+            {
+                selected = i;
+            }
+        }
 
-             auto rootWidgetH = rootWidgetWH.Lock();
-             if (!rootWidgetH || !rootWidgetH.instance)
-                 return;
+        Vector2 scale{};
+        scale.X = SCALE_MUL;
+        scale.Y = SCALE_MUL;
+        auto rootWidgetProp = _dialogHubLogicControllerCls->GetProperty("rootWidget");
+        auto setScaleF = _inkWidgetCls->GetFunction("SetScale");
+        auto updateMargin = _inkWidgetCls->GetFunction("SetMargin");
+        std::vector<RED4ext::CStackType> args;
+        args.emplace_back(nullptr, &scale);
 
-             auto height = rootWidgetH->ExecuteFunction<float>("GetHeight", nullptr);
-             if (height.has_value())
-                spdlog::debug(height.value());
-         }
+        auto rootWidget = rootWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(activeHubController);
+        RED4ext::ExecuteFunction(rootWidget.Lock(), setScaleF, nullptr, args);
+
+        rootWidgetProp = _dialogChoiceLogicControllerCls->GetProperty("RootWidget");
+
+        int i = 0;
+        Margin margin{};
+        
+        for (auto& itemH : itemControllersArr)
+        {
+            rootWidget = rootWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(itemH);
+            bool value = selected == i; 
+            args.clear();
+            args.emplace_back(nullptr, &scale);
+            RED4ext::ExecuteFunction(rootWidget.Lock(), setScaleF, nullptr, args);
+
+            args.clear();
+            margin.top = margin.bottom = 12;
+            args.emplace_back(nullptr, &margin);
+            RED4ext::ExecuteFunction(rootWidget.Lock(), updateMargin, nullptr, args);
+
+            args.clear();
+            args.emplace_back(nullptr, &value);
+            RED4ext::ExecuteFunction(itemH, _setSelectedF, nullptr, args);
+            RED4ext::ExecuteFunction(itemH, _updateColorsF, nullptr, {});
+            RED4ext::ExecuteFunction(itemH, _updateViewF, nullptr, {});
+            RED4ext::ExecuteFunction(itemH, _animateSelectionF, nullptr, {});
+            ++i;
+        }
+
+        selectedIndexProp->SetValue<int>(so, selected);
+        spdlog::debug("{}", selectedIndexProp->GetValue<int>(so));
+        return true;
     }
+    return false;
 }
