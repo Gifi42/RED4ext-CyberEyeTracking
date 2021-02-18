@@ -10,8 +10,8 @@ using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
 std::set<RED4ext::CClass*> g_inkWidgetControllersCls = std::set<RED4ext::CClass*>();
 std::set<RED4ext::IScriptable*> g_scriptObjects = std::set<RED4ext::IScriptable*>();
-std::map<std::string, bool> g_singletonClasses;
-std::map<std::string, RED4ext::IScriptable*> g_signletoneScriptObjects;
+std::map<RED4ext::CClass*, bool> g_singletonClasses;
+std::map<RED4ext::CClass*, RED4ext::IScriptable*> g_signletoneScriptObjects;
 
 std::mutex _syncMutex;
 
@@ -42,8 +42,9 @@ bool g_FindInkWidgetControllersCls(RED4ext::CClass* aThis)
 }
 
 typedef uint64_t (*HookFunction)(void*, RED4ext::IScriptable*);
-typedef std::map<std::string, HookFunction> HooksMap;
-std::map<std::string, uint64_t> WidgetControllersOrigInitRelAdr;
+typedef std::map<RED4ext::CClass*, HookFunction> HooksMap;
+std::map<RED4ext::CClass*, uint64_t> WidgetControllersOrigInitRelAdr;
+HookFunction g_defaultHook;
 
 HooksMap WidgetControllersOrigInitHooks;
 
@@ -52,29 +53,28 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
     auto cls = ((RED4ext::CClass*)aThis);
     
     HookFunction initOrig = nullptr;
-    const char* name = cls->name.ToString();
     
-    if (WidgetControllersOrigInitHooks.count(name))
+    if (WidgetControllersOrigInitHooks.count(cls))
     {
-        initOrig = WidgetControllersOrigInitHooks[name];
-        spdlog::debug("init {}", name);
+        initOrig = WidgetControllersOrigInitHooks[cls];
+        //spdlog::debug("init {}", cls->name.ToString());
     }
 
     if (initOrig == nullptr)
-        initOrig = WidgetControllersOrigInitHooks["healthbarWidgetGameController"];
+        initOrig = g_defaultHook;
 
     auto ret = initOrig(aThis, aScriptable);
     
-    _syncMutex.lock();
+   // _syncMutex.lock();
     if (!g_FindInkWidgetControllersCls(cls) || g_FindScriptObject(aScriptable))
     {
-        _syncMutex.unlock();
+        //_syncMutex.unlock();
         return ret;
     }
 
-    if (g_singletonClasses[name])
+    if (g_singletonClasses[cls])
     {
-        g_signletoneScriptObjects[name] = aScriptable;
+        g_signletoneScriptObjects[cls] = aScriptable;
     }
     else if (aScriptable)
     {
@@ -85,7 +85,7 @@ uint64_t WidgetControllerInitHook(void* aThis, RED4ext::IScriptable* aScriptable
         spdlog::debug("hooked InitCls but aScriptable is null");
     }
 
-    _syncMutex.unlock();
+   // _syncMutex.unlock();
     return ret;
 }
 
@@ -96,11 +96,11 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
     auto cls = ((RED4ext::CClass*)aThis);
     const char* name = cls->name.ToString();
 
-    _syncMutex.lock();
+   // _syncMutex.lock();
 
-    if (g_singletonClasses[name])
+    if (g_singletonClasses[cls])
     {
-        g_signletoneScriptObjects[name] = nullptr;
+        g_signletoneScriptObjects[cls] = nullptr;
         spdlog::debug("destroy {}", cls->name.ToString());
     }
     else if (g_FindScriptObject(aMemory))
@@ -108,15 +108,15 @@ uint64_t WidgetControllerDestroyHook(void* aThis, RED4ext::IScriptable* aMemory)
         g_scriptObjects.erase(aMemory);
     }
     
-    _syncMutex.unlock();
+    //_syncMutex.unlock();
 
     HookFunction destroyOrig = nullptr;
 
-    if (WidgetControllersOrigDestroyHooks.count(name))
-        destroyOrig = WidgetControllersOrigDestroyHooks[name];
+    if (WidgetControllersOrigDestroyHooks.count(cls))
+        destroyOrig = WidgetControllersOrigDestroyHooks[cls];
     
     if (destroyOrig == nullptr)
-        destroyOrig = WidgetControllersOrigDestroyHooks["healthbarWidgetGameController"];
+        destroyOrig = WidgetControllersOrigDestroyHooks.begin()->second;
     return destroyOrig(aThis, aMemory);
 }
 
@@ -158,22 +158,25 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::Init()
     spdlog::debug("baseaddr      : {:016X}", baseaddr);
     spdlog::debug("vtbladdr (rel): {:016X}", vtblAdr);
 
-    g_singletonClasses[clsName] = _singleton;
+    g_singletonClasses[_inkWidgetControllerCls] = _singleton;
     
     for (auto it = WidgetControllersOrigInitRelAdr.begin(); it != WidgetControllersOrigInitRelAdr.end(); it++)
     {
         if (it->second == vtblAdr)
         {
-            WidgetControllersOrigInitHooks[clsName] = WidgetControllersOrigInitHooks[it->first];
-            WidgetControllersOrigDestroyHooks[clsName] = WidgetControllersOrigDestroyHooks[it->first];
-            spdlog::debug("already hooked for {}", it->first);
+            WidgetControllersOrigInitHooks[_inkWidgetControllerCls] = WidgetControllersOrigInitHooks[it->first];
+            WidgetControllersOrigDestroyHooks[_inkWidgetControllerCls] = WidgetControllersOrigDestroyHooks[it->first];
+            //spdlog::debug("already hooked for {}", it->first);
             return;
         }
     }
-    WidgetControllersOrigInitHooks[clsName] = (HookFunction)pvtbl[27];
-    WidgetControllersOrigDestroyHooks[clsName] = (HookFunction)pvtbl[28];
-    WidgetControllersOrigInitRelAdr[clsName] = vtblAdr;
+    WidgetControllersOrigInitHooks[_inkWidgetControllerCls] = (HookFunction)pvtbl[27];
+    WidgetControllersOrigDestroyHooks[_inkWidgetControllerCls] = (HookFunction)pvtbl[28];
+    WidgetControllersOrigInitRelAdr[_inkWidgetControllerCls] = vtblAdr;
     DWORD oldRw;
+    if (g_defaultHook == nullptr)
+        g_defaultHook = (HookFunction)pvtbl[27];
+
     if (VirtualProtect((void*)pvtbl, 0x100, PAGE_EXECUTE_READWRITE, &oldRw))
     {
         pvtbl[27] = (uint64_t)WidgetControllerInitHook;
@@ -195,12 +198,11 @@ bool CyberEyeTracking::Workers::BaseInkWidgetController::CheckScriptObject(RED4e
 
 std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetController::GetScriptObjects()
 {
-    std::set<RED4ext::IScriptable*> res;
-    auto name = _ctrlrRTTIname.ToString();
-    if (g_singletonClasses[name])
+    std::set<RED4ext::IScriptable*> res;    
+    if (g_singletonClasses[_inkWidgetControllerCls])
     {
-        if (g_signletoneScriptObjects.count(name) && CheckScriptObject(g_signletoneScriptObjects[name]))
-            res.emplace(g_signletoneScriptObjects[name]);
+        if (g_signletoneScriptObjects.count(_inkWidgetControllerCls) && CheckScriptObject(g_signletoneScriptObjects[_inkWidgetControllerCls]))
+            res.emplace(g_signletoneScriptObjects[_inkWidgetControllerCls]);
 
         return res;
     }
@@ -269,10 +271,9 @@ bool CyberEyeTracking::Workers::BaseInkWidgetController::Exist()
 
 void CyberEyeTracking::Workers::BaseInkWidgetController::Erase()
 {
-    auto str = _ctrlrRTTIname.ToString();
-    if (g_signletoneScriptObjects.count(str))
+    if (g_signletoneScriptObjects.count(_inkWidgetControllerCls))
     {
-        g_signletoneScriptObjects.erase(str);
+        g_signletoneScriptObjects.erase(_inkWidgetControllerCls);
     }
 }
 

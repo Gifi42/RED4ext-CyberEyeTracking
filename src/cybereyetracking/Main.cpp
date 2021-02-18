@@ -148,6 +148,7 @@ void StartResetPitch(float x, float y)
 RED4EXT_EXPORT void OnUpdate()
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
+    static auto loadCheck = std::chrono::high_resolution_clock::now();
     static bool initialized = false;
     static bool trackerFound = false;
 
@@ -179,180 +180,187 @@ RED4EXT_EXPORT void OnUpdate()
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
-
+        
         initialized = true;
     }
-    if (!initialized)
+    if (!initialized || (now - loadCheck) < 15s)
+    {
         return;
-    
+    }
+
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
     auto instance = sysHandlers.Lock();
-    if (!instance || _wantedBarWorker.ObjectsCount() == 0)
+    if (!instance || _dialogWorker.ObjectsCount() == 0 || (now - timeStart) < 30s)
+    {
+        loadCheck = std::chrono::high_resolution_clock::now();
+        _dialogWorker.Erase();
         return;
+    }
 
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
     if (!gamePaused.has_value() || gamePaused.value())
     {
         return;
     }
+    
 
-    if ((now - timeStart) < 60s)
+    //args.clear();
+    //args.emplace_back(nullptr, &q000started);
+    //int32_t q000startedRes = 0;
+    //RED4ext::ExecuteFunction(questSystem, getFactStr, &q000startedRes, args);
+    //if (q000startedRes == 1)
+    //    return; // check if game is loading https://discord.com/channels/717692382849663036/794613856948322344/801953012146896937
+
+    float* pos = _eyeTracker.GetPos();
+    float x = pos[0];
+    float y = pos[1];
+    if (x > 1)
+        x = 1;
+    else if (x < 0)
+        x = 0;
+    if (y > 1)
+        y = 1;
+    else if (y < 0)
+        y = 0;
+
+        
+        // ================ WHEEL SELECT ==============
+    if (_radialWheelWorker.ObjectsCount() > 0)
+    {
+        float angle = CyberEyeTracking::Math::GetAngle(x, y);
+        if (_radialWheelWorker.SetAngle(angle))
+            return;
+    }
+
+    // ================ CLEAN UI ==============
+        
+    if (x >= 0 && x <= 0.25 && //(0-480)
+        y >= 0 && y <= 0.165)  // (0-110)
+    {
+        _healthBarWorker.ShowWidget();
+        StartResetPitch(x, y);
+    }
+    else
+    {
+        _healthBarWorker.HideWidget();
+    }
+
+    if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
+        && y >= 0.037037 && y <= 0.3055)  // (41-330)
+    {
+        _minimapWorker.ShowWidget();
+        StartResetPitch(x, y);
+    }
+    else
+    {
+        _minimapWorker.HideWidget();
+    }
+
+    if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
+        && y >= 0.055555555 && y <= 0.25)  // (60-270)
+    {
+        _wantedBarWorker.ShowWidget();
+    }
+    else
+    {
+        _wantedBarWorker.HideWidget();
+    }
+
+    if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
+        && y >= 0.35185185 && y <= 0.5) // (380-540)
+    {
+        _questTrackerWidgetWorker.ShowWidget();
+    }
+    else
+    {
+        _questTrackerWidgetWorker.HideWidget();
+    }
+
+    if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+        && y >= 0.8703703 && y <= 1)     // (940-1080)
+    {
+        _hotkeysWidgetWorker.ShowWidget();
+        StartResetPitch(x, y);
+    }
+    else
+    {
+        _hotkeysWidgetWorker.HideWidget();
+    }
+
+    // ================ DIALOGUE SELECT ==============
+    if (_dialogWorker.SelectAtPos(y))
         return;
 
-    if ((now - timeStart) > 30s)
+    // ================ CAMERA PITCH ==============
+
+    bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
+    bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
+    bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
+    bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
+
+    float pitchX = 0;
+    float pitchY = 0;
+
+    if (resetPitch)
     {
-        float* pos = _eyeTracker.GetPos();
-        float x = pos[0];
-        float y = pos[1];
-        if (x > 1)
-            x = 1;
-        else if (x < 0)
-            x = 0;
-        if (y > 1)
-            y = 1;
-        else if (y < 0)
-            y = 0;
-
-        
-         // ================ WHEEL SELECT ==============
-        if (_radialWheelWorker.ObjectsCount() > 0)
+        if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START
+            && y > CAMERA_PITCH_RESET_START && y < 1 - CAMERA_PITCH_RESET_START)
         {
-            float angle = CyberEyeTracking::Math::GetAngle(x, y);
-            if (_radialWheelWorker.SetAngle(angle))
-                return;
-        }
-
-        // ================ CLEAN UI ==============
-        
-        if (x >= 0 && x <= 0.25 && //(0-480)
-            y >= 0 && y <= 0.165)  // (0-110)
-        {
-            _healthBarWorker.ShowWidget();
-            StartResetPitch(x, y);
+            resetPitch = false;
         }
         else
         {
-            _healthBarWorker.HideWidget();
+            x = prevX;
+            y = prevY;
         }
-
-        if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
-            && y >= 0.037037 && y <= 0.3055)  // (41-330)
-        {
-            _minimapWorker.ShowWidget();
-            StartResetPitch(x, y);
-        }
-        else
-        {
-            _minimapWorker.HideWidget();
-        }
-
-        if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
-            && y >= 0.055555555 && y <= 0.25)  // (60-270)
-        {
-            _wantedBarWorker.ShowWidget();
-        }
-        else
-        {
-            _wantedBarWorker.HideWidget();
-        }
-
-        if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
-            && y >= 0.35185185 && y <= 0.5) // (380-540)
-        {
-            _questTrackerWidgetWorker.ShowWidget();
-        }
-        else
-        {
-            _questTrackerWidgetWorker.HideWidget();
-        }
-
-        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
-            && y >= 0.8703703 && y <= 1)     // (940-1080)
-        {
-            _hotkeysWidgetWorker.ShowWidget();
-            StartResetPitch(x, y);
-        }
-        else
-        {
-            _hotkeysWidgetWorker.HideWidget();
-        }
-
-        // ================ DIALOGUE SELECT ==============
-        if (_dialogWorker.SelectAtPos(y))
-            return;
-
-        // ================ CAMERA PITCH ==============
-
-        bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
-        bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
-        bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
-        bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
-
-        float pitchX = 0;
-        float pitchY = 0;
-
-        if (resetPitch)
-        {
-            if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START
-                && y > CAMERA_PITCH_RESET_START && y < 1 - CAMERA_PITCH_RESET_START)
-            {
-                resetPitch = false;
-            }
-            else
-            {
-                x = prevX;
-                y = prevY;
-            }
-        }
-        pitchX = GetCamPitch(x, pitchRight);
-        pitchY = GetCamPitch(y, pitchDown);
-        
-        _cameraPitchWorker.SetPitch(pitchX, pitchY);
-
-        // ================ LOOK AT LOOT ==============
-       /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;
-        std::vector<RED4ext::CStackType> args;
-        args.emplace_back(nullptr, &gameInstance);
-
-        auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetTargetingSystem");
-        RED4ext::ExecuteFunction(gameInstance, f, &targetSystem, args);
-
-        if (!targetSystem || !targetSystem.instance)
-            return;
-
-        RED4ext::Handle<RED4ext::IScriptable> playerH;
-        RED4ext::ExecuteGlobalFunction("GetPlayerObject;GameInstance", &playerH, gameInstance);
-        RED4ext::WeakHandle<RED4ext::IScriptable> playerWH{};
-        playerWH = playerH;
-
-        auto anglesCls = rtti->GetClass("EulerAngles");
-        auto fRand = anglesCls->GetFunction("Rand");
-        auto angles = anglesCls->AllocInstance();
-
-        anglesCls->GetProperty("Pitch")->SetValue<float>(angles, 0);
-        anglesCls->GetProperty("Roll")->SetValue<float>(angles, 0);
-        anglesCls->GetProperty("Yaw")->SetValue<float>(angles, 45 * x);
-
-        auto gtsCls = rtti->GetClass("gametargetingTargetingSystem");
-        auto fGetObjClosest = gtsCls->GetFunction("GetObjectClosestToCrosshair");
-
-        args.clear();
-        args.emplace_back(nullptr, &playerWH);
-        args.emplace_back(nullptr, &angles);
-        args.emplace_back(nullptr, query);
-        RED4ext::Handle<RED4ext::IScriptable> gameObj;
-        RED4ext::ExecuteFunction(targetSystem.instance, fGetObjClosest, &gameObj, args);
-
-        if (!gameObj || !gameObj.instance)
-            return;
-
-        RED4ext::CName className;
-        auto gameObjCls = rtti->GetClass("gameObject");
-        auto getNameFunc = gameObjCls->GetFunction("GetClassName");
-        RED4ext::ExecuteFunction(gameObj.instance, getNameFunc, &className, {});
-
-        spdlog::debug(className.ToString());*/
     }
-    
+    pitchX = GetCamPitch(x, pitchRight);
+    pitchY = GetCamPitch(y, pitchDown);
+        
+    _cameraPitchWorker.SetPitch(pitchX, pitchY);
+
+    // ================ LOOK AT LOOT ==============
+    /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;
+    std::vector<RED4ext::CStackType> args;
+    args.emplace_back(nullptr, &gameInstance);
+
+    auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetTargetingSystem");
+    RED4ext::ExecuteFunction(gameInstance, f, &targetSystem, args);
+
+    if (!targetSystem || !targetSystem.instance)
+        return;
+
+    RED4ext::Handle<RED4ext::IScriptable> playerH;
+    RED4ext::ExecuteGlobalFunction("GetPlayerObject;GameInstance", &playerH, gameInstance);
+    RED4ext::WeakHandle<RED4ext::IScriptable> playerWH{};
+    playerWH = playerH;
+
+    auto anglesCls = rtti->GetClass("EulerAngles");
+    auto fRand = anglesCls->GetFunction("Rand");
+    auto angles = anglesCls->AllocInstance();
+
+    anglesCls->GetProperty("Pitch")->SetValue<float>(angles, 0);
+    anglesCls->GetProperty("Roll")->SetValue<float>(angles, 0);
+    anglesCls->GetProperty("Yaw")->SetValue<float>(angles, 45 * x);
+
+    auto gtsCls = rtti->GetClass("gametargetingTargetingSystem");
+    auto fGetObjClosest = gtsCls->GetFunction("GetObjectClosestToCrosshair");
+
+    args.clear();
+    args.emplace_back(nullptr, &playerWH);
+    args.emplace_back(nullptr, &angles);
+    args.emplace_back(nullptr, query);
+    RED4ext::Handle<RED4ext::IScriptable> gameObj;
+    RED4ext::ExecuteFunction(targetSystem.instance, fGetObjClosest, &gameObj, args);
+
+    if (!gameObj || !gameObj.instance)
+        return;
+
+    RED4ext::CName className;
+    auto gameObjCls = rtti->GetClass("gameObject");
+    auto getNameFunc = gameObjCls->GetFunction("GetClassName");
+    RED4ext::ExecuteFunction(gameObj.instance, getNameFunc, &className, {});
+
+    spdlog::debug(className.ToString());*/
 }
