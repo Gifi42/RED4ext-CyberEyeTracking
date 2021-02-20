@@ -20,6 +20,9 @@
     <ClCompile Include="..\..\src\cybereyetracking\workers\DialogWorker.cpp">
       <Filter>GameWorkers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\cybereyetracking\workers\HUDManagerWorker.cpp">
+      <Filter>GameWorkers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
@@ -38,6 +41,9 @@
       <Filter>GameWorkers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\cybereyetracking\workers\DialogWorker.hpp">
+      <Filter>GameWorkers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\cybereyetracking\workers\HUDManagerWorker.hpp">
       <Filter>GameWorkers</Filter>
     </ClInclude>
   </ItemGroup>

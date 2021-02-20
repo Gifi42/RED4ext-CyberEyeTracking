@@ -9,7 +9,7 @@
 #include <Workers/RadialWheelWorker.hpp>
 #include <Workers/CameraPitchWorker.hpp>
 #include <Workers/DialogWorker.hpp>
-
+#include <Workers/HUDManagerWorker.hpp>
 
 #include <EyeTracker.hpp>
 #include "Utils.hpp"
@@ -28,14 +28,12 @@ CyberEyeTracking::Workers::BaseInkWidgetController _healthBarWorker = CyberEyeTr
 CyberEyeTracking::Workers::BaseInkWidgetController _minimapWorker = CyberEyeTracking::Workers::BaseInkWidgetController("gameuiMinimapContainerController");
 CyberEyeTracking::Workers::BaseInkWidgetController _wantedBarWorker = CyberEyeTracking::Workers::BaseInkWidgetController("WantedBarGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _questTrackerWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("QuestTrackerGameController");
-CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker =  CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");
-
+CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");
+CyberEyeTracking::Workers::BaseInkWidgetController _lootingWorker = CyberEyeTracking::Workers::BaseInkWidgetController("LootingController");
 CyberEyeTracking::Workers::RadialWheelWorker _radialWheelWorker =  CyberEyeTracking::Workers::RadialWheelWorker();
-
 CyberEyeTracking::Workers::CameraPitchWorker _cameraPitchWorker = CyberEyeTracking::Workers::CameraPitchWorker();
-
 CyberEyeTracking::Workers::DialogWorker _dialogWorker = CyberEyeTracking::Workers::DialogWorker();
-
+CyberEyeTracking::Workers::HUDManagerWorker _hudManagerWorker = CyberEyeTracking::Workers::HUDManagerWorker();
 
 CyberEyeTracking::EyeTracker _eyeTracker;
 
@@ -46,7 +44,7 @@ RED4ext::CClass* inkMenuScenarioCls;
 void InitializeLogger(std::filesystem::path aRoot)
 {
     auto console = std::make_shared<spdlog::sinks::stdout_color_sink_st>();
-    auto file = std::make_shared<spdlog::sinks::basic_file_sink_st>(aRoot / L"cetrack.log", true);
+    auto file = std::make_shared<spdlog::sinks::basic_file_sink_st>(aRoot / L"cybereyetracking.log", true);
 
     spdlog::sinks_init_list sinks = { console, file };
 
@@ -81,49 +79,6 @@ RED4EXT_EXPORT void OnShutdown()
     _eyeTracker.Finalize();
 }
 
-void LogClassFlags(RED4ext::CClass* cc)
-{
-    const auto& flgs = cc->flags;
-    spdlog::debug("Flags: {:08X}", *(uint32_t*)&flgs);
-    spdlog::debug("Flags.isAbstract:    {}", flgs.isAbstract);
-    spdlog::debug("Flags.isNative:      {}", flgs.isNative);
-    spdlog::debug("Flags.b2:            {}", flgs.b2);
-    spdlog::debug("Flags.b3:            {}", flgs.b3);
-    spdlog::debug("Flags.isStruct:      {}", flgs.isStruct);
-    spdlog::debug("Flags.b5:            {}", flgs.b5);
-    spdlog::debug("Flags.isImportOnly:  {}", flgs.isImportOnly);
-    spdlog::debug("Flags.isPrivate:     {}", flgs.isPrivate);
-    spdlog::debug("Flags.isProtected:   {}", flgs.isProtected);
-    spdlog::debug("Flags.isTestOnly:    {}", flgs.isTestOnly);
-}
-
-void LogHandle(RED4ext::HandleBase* handle)
-{
-    if (!handle)
-    {
-        spdlog::debug("handle == nullptr");
-        return;
-    }
-
-    if (handle->instance)
-    {
-        spdlog::debug("handle.instance: {:X}", handle->instance);
-    }
-    else
-    {
-        spdlog::debug("handle.instance: nullptr");
-    }
-
-    if (handle->refCount)
-    {
-        spdlog::debug("handle.refCount: {} {}", handle->refCount->strongRefs, handle->refCount->weakRefs);
-    }
-    else
-    {
-        spdlog::debug("handle.refCount: nullptr");
-    }
-}
-
 float GetCamPitch(float pos, bool negative)
 {
     return negative ?
@@ -150,6 +105,7 @@ RED4EXT_EXPORT void OnUpdate()
     static auto timeStart = std::chrono::high_resolution_clock::now();
     static auto loadCheck = std::chrono::high_resolution_clock::now();
     static bool initialized = false;
+    static bool hudManagerInitialized = false;
     static bool trackerFound = false;
 
     auto now = std::chrono::high_resolution_clock::now();
@@ -167,7 +123,7 @@ RED4EXT_EXPORT void OnUpdate()
         return;
     }        
    
-    if ((now - timeStart) >= 10s && !initialized)
+    if (!initialized && (now - timeStart) >= 10s)
     {
         _healthBarWorker.Init();
         _minimapWorker.Init();
@@ -177,40 +133,31 @@ RED4EXT_EXPORT void OnUpdate()
         _radialWheelWorker.Init();
         _cameraPitchWorker.Init(gameInstance);
         _dialogWorker.Init();
+        _lootingWorker.Init();
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
         
         initialized = true;
     }
-    if (!initialized || (now - loadCheck) < 15s)
-    {
+
+    if (!initialized || (now - loadCheck) < 30s)
         return;
-    }
 
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
     auto instance = sysHandlers.Lock();
-    if (!instance || _dialogWorker.ObjectsCount() == 0 || (now - timeStart) < 30s)
+    if (!instance || _dialogWorker.ObjectsCount() == 0)
     {
         loadCheck = std::chrono::high_resolution_clock::now();
         _dialogWorker.Erase();
+        hudManagerInitialized = false;
         return;
     }
 
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
     if (!gamePaused.has_value() || gamePaused.value())
-    {
         return;
-    }
-    
-
-    //args.clear();
-    //args.emplace_back(nullptr, &q000started);
-    //int32_t q000startedRes = 0;
-    //RED4ext::ExecuteFunction(questSystem, getFactStr, &q000startedRes, args);
-    //if (q000startedRes == 1)
-    //    return; // check if game is loading https://discord.com/channels/717692382849663036/794613856948322344/801953012146896937
 
     float* pos = _eyeTracker.GetPos();
     float x = pos[0];
@@ -224,8 +171,7 @@ RED4EXT_EXPORT void OnUpdate()
     else if (y < 0)
         y = 0;
 
-        
-        // ================ WHEEL SELECT ==============
+    // ================ WHEEL SELECT ==============
     if (_radialWheelWorker.ObjectsCount() > 0)
     {
         float angle = CyberEyeTracking::Math::GetAngle(x, y);
@@ -293,6 +239,16 @@ RED4EXT_EXPORT void OnUpdate()
         return;
 
     // ================ CAMERA PITCH ==============
+    if (!hudManagerInitialized)
+    {
+        _hudManagerWorker.Init();
+        hudManagerInitialized = true;
+    }
+    if (_lootingWorker.GetBoolPropertyValue("isShown") || _hudManagerWorker.IsScanning() || _hudManagerWorker.IsHacking())
+    {
+        _cameraPitchWorker.SetPitch(0, 0);
+        return;
+    }
 
     bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
     bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;

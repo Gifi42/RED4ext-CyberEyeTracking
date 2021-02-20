@@ -196,6 +196,15 @@ bool CyberEyeTracking::Workers::BaseInkWidgetController::CheckScriptObject(RED4e
            _inkWidgetControllerCls->name == scriptObject->classType->name;
 }
 
+bool CyberEyeTracking::Workers::BaseInkWidgetController::GetBoolPropertyValue(const char* propName)
+{
+    RED4ext::CProperty* prop = _inkWidgetControllerCls->GetProperty(propName);
+    for (auto& so : GetScriptObjects())
+    {
+        return prop->GetValue<bool>(so);
+    }
+}
+
 std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetController::GetScriptObjects()
 {
     std::set<RED4ext::IScriptable*> res;    

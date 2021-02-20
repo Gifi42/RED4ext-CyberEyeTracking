@@ -72,7 +72,7 @@ bool CyberEyeTracking::Workers::DialogWorker::SelectAtPos(float yPos)
         if (hubControllers.size == 0)
             return Reset();
 
-        RED4ext::IScriptable* activeHubController;
+        RED4ext::IScriptable* activeHubController = nullptr;
         for (auto& hubControllerWH : hubControllers)
         {
             auto hubControllerH = hubControllerWH.Lock();

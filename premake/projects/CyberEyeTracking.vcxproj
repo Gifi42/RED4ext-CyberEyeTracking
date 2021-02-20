@@ -84,10 +84,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WINVER=0x0601;_WIN32_WINNT=0x0601;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;SPDLOG_COMPILED_LIB;SPDLOG_NO_THREAD_ID;SPDLOG_WCHAR_FILENAMES;SPDLOG_WCHAR_TO_UTF8_SUPPORT;SPDLOG_DISABLE_DEFAULT_LOGGER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\cybereyetracking;..\..\deps\renhook\src;..\..\deps\renhook\deps\zydis\include;..\..\deps\renhook\deps\zydis\src;..\..\deps\zyantific;..\..\deps\renhook\deps\zydis\dependencies\zycore\include;..\..\deps\spdlog\include;..\..\deps\tobii;..\..\src\red4ext.sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.hpp</PrecompiledHeaderFile>
       <Optimization>Full</Optimization>
@@ -114,6 +114,7 @@
     <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\CameraPitchWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\DialogWorker.hpp" />
+    <ClInclude Include="..\..\src\cybereyetracking\workers\HUDManagerWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.hpp" />
     <ClInclude Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.hpp" />
   </ItemGroup>
@@ -127,6 +128,7 @@
     <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\CameraPitchWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\DialogWorker.cpp" />
+    <ClCompile Include="..\..\src\cybereyetracking\workers\HUDManagerWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.cpp" />
     <ClCompile Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.cpp" />
   </ItemGroup>
