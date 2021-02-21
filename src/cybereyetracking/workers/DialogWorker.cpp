@@ -27,6 +27,7 @@ void CyberEyeTracking::Workers::DialogWorker::Init()
     _dhlcIdProp = _dialogHubLogicControllerCls->GetProperty("id");
     _itemControllersProp = _dialogHubLogicControllerCls->GetProperty("itemControllers");
     _hubRootWidgetProp = _dialogHubLogicControllerCls->GetProperty("rootWidget");
+    _titleWidgetProp = _dialogHubLogicControllerCls->GetProperty("titleContainer");
 
     _dialogChoiceLogicControllerCls = _rtti->GetClass("DialogChoiceLogicController");
     _updateViewF = _dialogChoiceLogicControllerCls->GetFunction("UpdateView");
@@ -136,23 +137,30 @@ bool CyberEyeTracking::Workers::DialogWorker::SelectAtPos(float yPos)
             std::vector<RED4ext::CStackType> args;
             args.emplace_back(nullptr, &scale);
 
-            auto rootWidget =
-              _hubRootWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(activeHubController);
-            RED4ext::ExecuteFunction(rootWidget.Lock(), _inkWidgetSetScaleF, nullptr, args);
+            auto widget =_hubRootWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(activeHubController);
+            RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetSetScaleF, nullptr, args);
+
+            widget = _titleWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(activeHubController);
+            RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetSetScaleF, nullptr, args);
 
             Margin margin{};
-            i = 0;
+            margin.right = 25;
+            args.clear();
+            args.emplace_back(nullptr, &margin);
+            RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetUpdateMarginF, nullptr, args);
+
+            margin.right = 0;
             for (auto& itemH : itemControllersArr)
             {
-                rootWidget = _choiceRootWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(itemH);
+                widget = _choiceRootWidgetProp->GetValue<RED4ext::WeakHandle<RED4ext::IScriptable>>(itemH);
                 args.clear();
                 args.emplace_back(nullptr, &scale);
-                RED4ext::ExecuteFunction(rootWidget.Lock(), _inkWidgetSetScaleF, nullptr, args);
+                RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetSetScaleF, nullptr, args);
 
                 args.clear();
                 margin.top = margin.bottom = 12;
                 args.emplace_back(nullptr, &margin);
-                RED4ext::ExecuteFunction(rootWidget.Lock(), _inkWidgetUpdateMarginF, nullptr, args);
+                RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetUpdateMarginF, nullptr, args);
 
                 // args.clear();
                 // bool value = selected == i;
@@ -160,8 +168,6 @@ bool CyberEyeTracking::Workers::DialogWorker::SelectAtPos(float yPos)
                 // RED4ext::ExecuteFunction(itemH, _setSelectedF, nullptr, args);
                 RED4ext::ExecuteFunction(itemH, _updateViewF, nullptr, {});
                 // RED4ext::ExecuteFunction(itemH, _animateSelectionF, nullptr, {});
-
-                ++i;
             }
             widgetsScaled = true;
         }

@@ -13,6 +13,7 @@ namespace CyberEyeTracking::Workers
         RED4ext::CProperty* _dhlcIdProp;
         RED4ext::CProperty* _itemControllersProp;
         RED4ext::CProperty* _hubRootWidgetProp;
+        RED4ext::CProperty* _titleWidgetProp;
         RED4ext::CProperty* _choiceRootWidgetProp;
 
         //RED4ext::CClass* _blackboardCls;

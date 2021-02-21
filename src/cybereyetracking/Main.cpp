@@ -41,6 +41,11 @@ RED4ext::WeakHandle<RED4ext::IScriptable> sysHandlers;
 RED4ext::CClass* scriptGameInstanceCls;
 RED4ext::CClass* inkMenuScenarioCls;
 
+bool _disableWheelSelect = false;
+bool _disableCleanUI = false;
+bool _disableDialogueSelect = false;
+bool _disableCameraPitch = false;
+
 void InitializeLogger(std::filesystem::path aRoot)
 {
     auto console = std::make_shared<spdlog::sinks::stdout_color_sink_st>();
@@ -70,6 +75,19 @@ RED4EXT_EXPORT void OnBaseInitialization()
 
 RED4EXT_EXPORT void OnInitialization()
 {
+    TCHAR iniVal[4];
+    GetPrivateProfileString(L"features", L"DisableWheelSelect", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    _disableWheelSelect = iniVal[0] == '1';
+
+    GetPrivateProfileString(L"features", L"DisableCleanUI", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    _disableCleanUI = iniVal[0] == '1';
+
+    GetPrivateProfileString(L"features", L"DisableDialogueSelect", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    _disableDialogueSelect = iniVal[0] == '1';
+
+    GetPrivateProfileString(L"features", L"DisableCameraPitch", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    _disableCameraPitch = iniVal[0] == '1';
+
     spdlog::info("Looking for a connected eye tracking device");
 }
 
@@ -123,17 +141,29 @@ RED4EXT_EXPORT void OnUpdate()
         return;
     }        
    
-    if (!initialized && (now - timeStart) >= 10s)
+    if (!initialized && (now - timeStart) >= 5s)
     {
-        _healthBarWorker.Init();
-        _minimapWorker.Init();
-        _wantedBarWorker.Init();
-        _questTrackerWidgetWorker.Init();
-        _hotkeysWidgetWorker.Init();
-        _radialWheelWorker.Init();
-        _cameraPitchWorker.Init(gameInstance);
-        _dialogWorker.Init();
-        _lootingWorker.Init();
+        if (!_disableCleanUI)
+        {
+            _healthBarWorker.Init();
+            _minimapWorker.Init();
+            _wantedBarWorker.Init();
+            _questTrackerWidgetWorker.Init();
+            _hotkeysWidgetWorker.Init();
+        }
+        if (!_disableWheelSelect)
+        {
+            _radialWheelWorker.Init();
+        }
+        if (!_disableCameraPitch)
+        {
+            _cameraPitchWorker.Init(gameInstance);
+            _lootingWorker.Init();
+        }
+        if (!_disableDialogueSelect)
+        {
+            _dialogWorker.Init();
+        }
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
@@ -172,7 +202,7 @@ RED4EXT_EXPORT void OnUpdate()
         y = 0;
 
     // ================ WHEEL SELECT ==============
-    if (_radialWheelWorker.ObjectsCount() > 0)
+    if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
     {
         float angle = CyberEyeTracking::Math::GetAngle(x, y);
         if (_radialWheelWorker.SetAngle(angle))
@@ -180,102 +210,107 @@ RED4EXT_EXPORT void OnUpdate()
     }
 
     // ================ CLEAN UI ==============
-        
-    if (x >= 0 && x <= 0.25 && //(0-480)
-        y >= 0 && y <= 0.165)  // (0-110)
+    if (!_disableCleanUI)
     {
-        _healthBarWorker.ShowWidget();
-        StartResetPitch(x, y);
-    }
-    else
-    {
-        _healthBarWorker.HideWidget();
-    }
-
-    if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
-        && y >= 0.037037 && y <= 0.3055)  // (41-330)
-    {
-        _minimapWorker.ShowWidget();
-        StartResetPitch(x, y);
-    }
-    else
-    {
-        _minimapWorker.HideWidget();
-    }
-
-    if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
-        && y >= 0.055555555 && y <= 0.25)  // (60-270)
-    {
-        _wantedBarWorker.ShowWidget();
-    }
-    else
-    {
-        _wantedBarWorker.HideWidget();
-    }
-
-    if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
-        && y >= 0.35185185 && y <= 0.5) // (380-540)
-    {
-        _questTrackerWidgetWorker.ShowWidget();
-    }
-    else
-    {
-        _questTrackerWidgetWorker.HideWidget();
-    }
-
-    if (x >= 0.03125 && x <= 0.161458333 // (60-310)
-        && y >= 0.8703703 && y <= 1)     // (940-1080)
-    {
-        _hotkeysWidgetWorker.ShowWidget();
-        StartResetPitch(x, y);
-    }
-    else
-    {
-        _hotkeysWidgetWorker.HideWidget();
-    }
-
-    // ================ DIALOGUE SELECT ==============
-    if (_dialogWorker.SelectAtPos(y))
-        return;
-
-    // ================ CAMERA PITCH ==============
-    if (!hudManagerInitialized)
-    {
-        _hudManagerWorker.Init();
-        hudManagerInitialized = true;
-    }
-    if (_lootingWorker.GetBoolPropertyValue("isShown") || _hudManagerWorker.IsScanning() || _hudManagerWorker.IsHacking())
-    {
-        _cameraPitchWorker.SetPitch(0, 0);
-        return;
-    }
-
-    bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
-    bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
-    bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
-    bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
-
-    float pitchX = 0;
-    float pitchY = 0;
-
-    if (resetPitch)
-    {
-        if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START
-            && y > CAMERA_PITCH_RESET_START && y < 1 - CAMERA_PITCH_RESET_START)
+        if (x >= 0 && x <= 0.25 && //(0-480)
+            y >= 0 && y <= 0.165)  // (0-110)
         {
-            resetPitch = false;
+            _healthBarWorker.ShowWidget();
+            StartResetPitch(x, y);
         }
         else
         {
-            x = prevX;
-            y = prevY;
+            _healthBarWorker.HideWidget();
+        }
+
+        if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
+            && y >= 0.037037 && y <= 0.3055)  // (41-330)
+        {
+            _minimapWorker.ShowWidget();
+            StartResetPitch(x, y);
+        }
+        else
+        {
+            _minimapWorker.HideWidget();
+        }
+
+        if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
+            && y >= 0.055555555 && y <= 0.25)  // (60-270)
+        {
+            _wantedBarWorker.ShowWidget();
+        }
+        else
+        {
+            _wantedBarWorker.HideWidget();
+        }
+
+        if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
+            && y >= 0.35185185 && y <= 0.5)             // (380-540)
+        {
+            _questTrackerWidgetWorker.ShowWidget();
+        }
+        else
+        {
+            _questTrackerWidgetWorker.HideWidget();
+        }
+
+        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+            && y >= 0.8703703 && y <= 1)     // (940-1080)
+        {
+            _hotkeysWidgetWorker.ShowWidget();
+            StartResetPitch(x, y);
+        }
+        else
+        {
+            _hotkeysWidgetWorker.HideWidget();
         }
     }
-    pitchX = GetCamPitch(x, pitchRight);
-    pitchY = GetCamPitch(y, pitchDown);
-        
-    _cameraPitchWorker.SetPitch(pitchX, pitchY);
 
+    // ================ DIALOGUE SELECT ==============
+    if (!_disableDialogueSelect && _dialogWorker.SelectAtPos(y))
+        return;
+
+    // ================ CAMERA PITCH ==============
+    if (!_disableCameraPitch)
+    {
+        if (!hudManagerInitialized)
+        {
+            _hudManagerWorker.Init();
+            hudManagerInitialized = true;
+        }
+        if (_lootingWorker.GetBoolPropertyValue("isShown") || _hudManagerWorker.IsScanning() ||
+            _hudManagerWorker.IsHacking())
+        {
+            _cameraPitchWorker.SetPitch(0, 0);
+            return;
+        }
+
+        bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
+        bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
+        bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
+        bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
+
+        float pitchX = 0;
+        float pitchY = 0;
+
+        if (resetPitch)
+        {
+            if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
+                y < 1 - CAMERA_PITCH_RESET_START)
+            {
+                resetPitch = false;
+            }
+            else
+            {
+                x = prevX;
+                y = prevY;
+            }
+        }
+        pitchX = GetCamPitch(x, pitchRight);
+        pitchY = GetCamPitch(y, pitchDown);
+
+        _cameraPitchWorker.SetPitch(pitchX, pitchY);
+    }
     // ================ LOOK AT LOOT ==============
     /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;
     std::vector<RED4ext::CStackType> args;
