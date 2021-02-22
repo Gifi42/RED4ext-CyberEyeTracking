@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <set>
+#include <tchar.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -46,6 +47,9 @@ bool _disableCleanUI = false;
 bool _disableDialogueSelect = false;
 bool _disableCameraPitch = false;
 
+std::string rootPath;
+std::chrono::seconds loadCheckSec(15);
+
 void InitializeLogger(std::filesystem::path aRoot)
 {
     auto console = std::make_shared<spdlog::sinks::stdout_color_sink_st>();
@@ -68,7 +72,19 @@ void InitializeLogger(std::filesystem::path aRoot)
 
 RED4EXT_EXPORT void OnBaseInitialization()
 {
-    InitializeLogger(L"");
+    char buff[MAX_PATH];
+    GetModuleFileNameA(NULL, buff, MAX_PATH);
+
+    rootPath = std::string(buff);
+    size_t pos = std::string::npos;
+    std::string toErase = "Cyberpunk2077.exe";
+    // Search for the substring in string in a loop untill nothing is found
+    while ((pos = rootPath.find(toErase)) != std::string::npos)
+    {
+        // If found then erase it from string
+        rootPath.erase(pos, toErase.length());
+    }
+    InitializeLogger(rootPath);
     
     _eyeTracker = CyberEyeTracking::EyeTracker();
 }
@@ -76,18 +92,23 @@ RED4EXT_EXPORT void OnBaseInitialization()
 RED4EXT_EXPORT void OnInitialization()
 {
     TCHAR iniVal[4];
-    GetPrivateProfileString(L"features", L"DisableWheelSelect", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    std::string iniPathStr = rootPath + "cybereyetracking.ini";
+    std::wstring iniPath = std::wstring(iniPathStr.begin(), iniPathStr.end());
+    GetPrivateProfileString(L"features", L"DisableWheelSelect", L"0", iniVal, 4, iniPath.c_str());
     _disableWheelSelect = iniVal[0] == '1';
 
-    GetPrivateProfileString(L"features", L"DisableCleanUI", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    GetPrivateProfileString(L"features", L"DisableCleanUI", L"0", iniVal, 4, iniPath.c_str());
     _disableCleanUI = iniVal[0] == '1';
 
-    GetPrivateProfileString(L"features", L"DisableDialogueSelect", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    GetPrivateProfileString(L"features", L"DisableDialogueSelect", L"0", iniVal, 4, iniPath.c_str());
     _disableDialogueSelect = iniVal[0] == '1';
 
-    GetPrivateProfileString(L"features", L"DisableCameraPitch", L"0", iniVal, 4, L".\\cybereyetracking.ini");
+    GetPrivateProfileString(L"features", L"DisableCameraPitch", L"0", iniVal, 4, iniPath.c_str());
     _disableCameraPitch = iniVal[0] == '1';
 
+    GetPrivateProfileString(L"features", L"LoadCheckSec", L"15", iniVal, 4, iniPath.c_str());
+    int loadCheckSecVal = _ttoi(iniVal);
+    loadCheckSec = std::chrono::seconds(loadCheckSecVal);
     spdlog::info("Looking for a connected eye tracking device");
 }
 
@@ -170,8 +191,8 @@ RED4EXT_EXPORT void OnUpdate()
         
         initialized = true;
     }
-
-    if (!initialized || (now - loadCheck) < 30s)
+    
+    if (!initialized || (now - loadCheck) < loadCheckSec)
         return;
 
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
