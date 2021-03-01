@@ -191,10 +191,8 @@ RED4EXT_EXPORT void OnUpdate()
             _cameraPitchWorker.Init(gameInstance);
             _lootingWorker.Init();
         }
-        if (!_disableDialogueSelect)
-        {
-            _dialogWorker.Init();
-        }
+        
+        _dialogWorker.Init();
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
