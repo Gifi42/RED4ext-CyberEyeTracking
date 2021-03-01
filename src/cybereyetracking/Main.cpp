@@ -31,6 +31,11 @@ CyberEyeTracking::Workers::BaseInkWidgetController _wantedBarWorker = CyberEyeTr
 CyberEyeTracking::Workers::BaseInkWidgetController _questTrackerWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("QuestTrackerGameController");
 CyberEyeTracking::Workers::BaseInkWidgetController _hotkeysWidgetWorker = CyberEyeTracking::Workers::BaseInkWidgetController("HotkeysWidgetController");
 CyberEyeTracking::Workers::BaseInkWidgetController _lootingWorker = CyberEyeTracking::Workers::BaseInkWidgetController("LootingController");
+CyberEyeTracking::Workers::BaseInkWidgetController _crosshairWorker = CyberEyeTracking::Workers::BaseInkWidgetController("CrosshairGameController_Simple");
+CyberEyeTracking::Workers::BaseInkWidgetController _crosshairWorker2 = CyberEyeTracking::Workers::BaseInkWidgetController("CrosshairGameController_Basic");
+CyberEyeTracking::Workers::BaseInkWidgetController _crosshairWorker3 = CyberEyeTracking::Workers::BaseInkWidgetController("CrosshairGameController_Smart_Rifl");
+CyberEyeTracking::Workers::BaseInkWidgetController _crosshairWorker4 = CyberEyeTracking::Workers::BaseInkWidgetController("gameuiCrosshairContainerController");
+
 CyberEyeTracking::Workers::RadialWheelWorker _radialWheelWorker =  CyberEyeTracking::Workers::RadialWheelWorker();
 CyberEyeTracking::Workers::CameraPitchWorker _cameraPitchWorker = CyberEyeTracking::Workers::CameraPitchWorker();
 CyberEyeTracking::Workers::DialogWorker _dialogWorker = CyberEyeTracking::Workers::DialogWorker();
@@ -172,6 +177,10 @@ RED4EXT_EXPORT void OnUpdate()
             _wantedBarWorker.Init();
             _questTrackerWidgetWorker.Init();
             _hotkeysWidgetWorker.Init();
+            _crosshairWorker.Init();
+            _crosshairWorker2.Init();
+            _crosshairWorker3.Init();
+            _crosshairWorker4.Init();
         }
         if (!_disableWheelSelect)
         {
@@ -284,6 +293,21 @@ RED4EXT_EXPORT void OnUpdate()
         else
         {
             _hotkeysWidgetWorker.HideWidget();
+        }
+
+        if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
+        {
+            _crosshairWorker.HideWidget();
+            _crosshairWorker2.HideWidget();
+            _crosshairWorker3.HideWidget();
+            _crosshairWorker4.HideWidget();
+        }
+        else
+        {
+            _crosshairWorker.ShowWidget();
+            _crosshairWorker2.ShowWidget();
+            _crosshairWorker3.ShowWidget();
+            _crosshairWorker4.ShowWidget();
         }
     }
 

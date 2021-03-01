@@ -236,9 +236,7 @@ std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetControll
 
 void CyberEyeTracking::Workers::BaseInkWidgetController::SetRootOpacity(float value)
 {
-    decltype(GetScriptObjects()) copy = GetScriptObjects();
-
-    for (auto& scriptable : copy)
+    for (auto& scriptable : GetScriptObjects())
     {
         if (*(uint64_t*)scriptable == 0)
         {
