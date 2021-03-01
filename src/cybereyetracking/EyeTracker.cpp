@@ -69,8 +69,7 @@ bool CyberEyeTracking::EyeTracker::Init()
 
 float* CyberEyeTracking::EyeTracker::GetPos()
 {
-    auto result = tobii_wait_for_callbacks(1, &device);
-    result = tobii_device_process_callbacks(device);
+    tobii_device_process_callbacks(device);
     return pos;
 }
 

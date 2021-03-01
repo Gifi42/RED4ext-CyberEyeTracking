@@ -160,7 +160,8 @@ RED4EXT_EXPORT void OnUpdate()
 
         trackerFound = true;
         return;
-    }        
+    }
+    float* pos = _eyeTracker.GetPos();
    
     if (!initialized && (now - timeStart) >= 5s)
     {
@@ -210,7 +211,6 @@ RED4EXT_EXPORT void OnUpdate()
     if (!gamePaused.has_value() || gamePaused.value())
         return;
 
-    float* pos = _eyeTracker.GetPos();
     float x = pos[0];
     float y = pos[1];
     if (x > 1)
