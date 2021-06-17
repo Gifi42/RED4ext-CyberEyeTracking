@@ -104,11 +104,11 @@ bool CyberEyeTracking::Workers::DialogWorker::SelectAtPos(float yPos)
         if (yPos < startPos)
             yPos = startPos;
         
-        int sc1 = 34 * SCALE_MUL;
-        int height = ((sc1)-34) + sc1; // x1 = 34. x1.2 = 46
+        int sc1 = 31 * SCALE_MUL;
+        int height = ((sc1)-31) + sc1; // x1 = 34. x1.2 = 46
+        int i = 0;
 
         int selectionOffset = 0;
-        int i = 0;
 
         selected = _selectedIdxProp->GetValue<int32_t>(so);
         for (i = 0; i < itemControllersArr.size; ++i)
@@ -158,7 +158,7 @@ bool CyberEyeTracking::Workers::DialogWorker::SelectAtPos(float yPos)
                 RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetSetScaleF, nullptr, args);
 
                 args.clear();
-                margin.top = margin.bottom = 12;
+                margin.top = margin.bottom = 10 * SCALE_MUL; // ceil(height / 3.6)  ?
                 args.emplace_back(nullptr, &margin);
                 RED4ext::ExecuteFunction(widget.Lock(), _inkWidgetUpdateMarginF, nullptr, args);
 
