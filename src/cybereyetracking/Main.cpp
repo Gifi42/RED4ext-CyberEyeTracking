@@ -229,6 +229,28 @@ RED4EXT_EXPORT void OnUpdate()
     else if (y < 0)
         y = 0;
 
+    // Dont work if some camera is controlled
+    RED4ext::Handle<RED4ext::IScriptable> container;
+    std::vector<RED4ext::CStackType> args;
+    args.emplace_back(nullptr, &gameInstance);
+
+    auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetScriptableSystemsContainer");
+    RED4ext::ExecuteFunction(gameInstance, f, &container, args);
+
+    if (!container || !container.instance)
+        return;
+
+    args.clear();
+    RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
+    auto name = RED4ext::CName::CName("TakeOverControlSystem");
+    args.emplace_back(nullptr, &name);
+    f = rtti->GetClass("gameScriptableSystemsContainer")->GetFunction("Get");
+
+    RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
+    auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
+    if (isDeviceControlled.value())
+        return;
+
     // ================ WHEEL SELECT ==============
     if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
     {
@@ -314,6 +336,7 @@ RED4EXT_EXPORT void OnUpdate()
         return;
 
     // ================ CAMERA PITCH ==============
+    
     if (!_disableCameraPitch)
     {
         if (!hudManagerInitialized)

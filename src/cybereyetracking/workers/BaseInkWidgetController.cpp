@@ -200,6 +200,7 @@ bool CyberEyeTracking::Workers::BaseInkWidgetController::CheckScriptObject(RED4e
     }
     catch (...)
     {
+        spdlog::error("CheckScriptObject catch error");
         return false;
     }
 }

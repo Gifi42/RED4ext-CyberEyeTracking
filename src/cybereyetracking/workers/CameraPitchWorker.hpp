@@ -4,7 +4,7 @@
 
 namespace CyberEyeTracking::Workers
 {
-    class CameraPitchWorker : public BaseInkWidgetController
+    class CameraPitchWorker
     {
     private:
         RED4ext::CClassFunction* _fGetLocalOrientation;
@@ -18,6 +18,7 @@ namespace CyberEyeTracking::Workers
         RED4ext::CProperty* _jProp;
         RED4ext::CProperty* _kProp;
         RED4ext::CProperty* _rProp;
+        
         float _i = 0, _j = 0, _k = 0, _r = 0;
 
         RED4ext::CClass* _playerPuppetCls;
@@ -25,10 +26,9 @@ namespace CyberEyeTracking::Workers
         RED4ext::IScriptable* RotateQuat(float value, bool isY);
 
     public:
-        CameraPitchWorker()
-            : BaseInkWidgetController("gameFPPCameraComponent"){};
+        CameraPitchWorker() = default;
         ~CameraPitchWorker() = default;
-
+        
         void Init(RED4ext::GameInstance* gameInstance);
         void SetPitch(float x, float y);
     };
