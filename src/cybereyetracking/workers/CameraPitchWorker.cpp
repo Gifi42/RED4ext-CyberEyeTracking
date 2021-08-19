@@ -1,5 +1,6 @@
 #include <stdafx.hpp>
 #include <set>
+#include <RED4ext/Scripting/Natives/ScriptGameInstance.hpp>
 
 #include "BaseInkWidgetController.hpp"
 #include "CameraPitchWorker.hpp"
@@ -42,10 +43,11 @@ RED4ext::IScriptable* CyberEyeTracking::Workers::CameraPitchWorker::RotateQuat(f
 
 void CyberEyeTracking::Workers::CameraPitchWorker::SetPitch(float x, float y)
 {
-    RED4ext::Handle<RED4ext::IScriptable> playerPuppetH;
-    RED4ext::ExecuteGlobalFunction("GetPlayer;GameInstance", &playerPuppetH, _gameInstance);
+    RED4ext::Handle<RED4ext::IScriptable> playerHandle;
+    RED4ext::ScriptGameInstance gameInstance;
+    RED4ext::ExecuteGlobalFunction("GetPlayer;GameInstance", &playerHandle, gameInstance);
 
-    auto res = playerPuppetH->ExecuteFunction<RED4ext::Handle<RED4ext::IScriptable>>("GetFPPCameraComponent");
+    auto res = playerHandle->ExecuteFunction<RED4ext::Handle<RED4ext::IScriptable>>("GetFPPCameraComponent");
     if (!res.has_value())
         return;
 
