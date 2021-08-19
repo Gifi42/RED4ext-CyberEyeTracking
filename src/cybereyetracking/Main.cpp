@@ -75,7 +75,7 @@ void InitializeLogger(std::filesystem::path aRoot)
 }
 
 
-RED4EXT_EXPORT void OnBaseInitialization()
+RED4EXT_C_EXPORT bool RED4EXT_CALL Load(RED4ext::PluginHandle aHandle, const RED4ext::IRED4ext* aInterface)
 {
     char buff[MAX_PATH];
     GetModuleFileNameA(NULL, buff, MAX_PATH);
@@ -92,9 +92,10 @@ RED4EXT_EXPORT void OnBaseInitialization()
     InitializeLogger(rootPath);
     
     _eyeTracker = CyberEyeTracking::EyeTracker();
+    return true;
 }
 
-RED4EXT_EXPORT void OnInitialization()
+RED4EXT_C_EXPORT void RED4EXT_CALL PostLoad()
 {
     TCHAR iniVal[4];
     std::string iniPathStr = rootPath + "cybereyetracking.ini";
@@ -118,7 +119,7 @@ RED4EXT_EXPORT void OnInitialization()
 }
 
 
-RED4EXT_EXPORT void OnShutdown()
+RED4EXT_C_EXPORT void RED4EXT_CALL Unload()
 {
     _eyeTracker.Finalize();
 }
@@ -144,7 +145,7 @@ void StartResetPitch(float x, float y)
     prevY = y;
 }
 
-RED4EXT_EXPORT void OnUpdate()
+RED4EXT_C_EXPORT void RED4EXT_CALL Update()
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
     static auto loadCheck = std::chrono::high_resolution_clock::now();
@@ -420,4 +421,28 @@ RED4EXT_EXPORT void OnUpdate()
     RED4ext::ExecuteFunction(gameObj.instance, getNameFunc, &className, {});
 
     spdlog::debug(className.ToString());*/
+}
+
+RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::PluginInfo* aInfo)
+{
+    /*
+     * Runtime version is the game's version, it is best to let it set to "RED4EXT_RUNTIME_LATEST" if you want to target
+     * the latest game's version that the SDK defined, if the runtime version specified here and the game's version do
+     * not match, your plugin will not be loaded. If you want to use RED4ext only as a loader and you do not care about
+     * game's version use "RED4EXT_RUNTIME_INDEPENDENT".
+     */
+
+    aInfo->name = L"CyberEyeTracking";
+    aInfo->author = L"Jay-D";
+    aInfo->version = RED4EXT_SEMVER(1, 0, 0);
+    aInfo->runtime = RED4EXT_RUNTIME_LATEST;
+    aInfo->sdk = RED4EXT_SDK_LATEST;
+}
+
+RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports()
+{
+    /*
+     * This functions returns only what API version is support by your plugins.
+     */
+    return RED4EXT_API_VERSION_LATEST;
 }
