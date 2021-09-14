@@ -1,51 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\..\src\cybereyetracking\Main.cpp" />
-    <ClCompile Include="..\..\src\cybereyetracking\stdafx.cpp" />
-    <ClCompile Include="..\..\src\cybereyetracking\EyeTracker.cpp" />
-    <ClCompile Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\Utils.cpp" />
-    <ClCompile Include="..\..\src\cybereyetracking\workers\CameraPitchWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\DialogWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\cybereyetracking\workers\HUDManagerWorker.cpp">
-      <Filter>GameWorkers</Filter>
-    </ClCompile>
+    <ClCompile Include="..\src\cybereyetracking\EyeTracker.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\Main.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\stdafx.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\Utils.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\workers\BaseInkWidgetController.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\workers\CameraPitchWorker.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\workers\DialogWorker.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\workers\HUDManagerWorker.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\workers\LoadingGameWorker.cpp" />
+    <ClCompile Include="..\src\cybereyetracking\workers\RadialWheelWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\cybereyetracking\stdafx.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\EyeTracker.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\workers\BaseInkWidgetController.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\LoadingGameWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\RadialWheelWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\Utils.hpp" />
-    <ClInclude Include="..\..\src\cybereyetracking\workers\CameraPitchWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\DialogWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\cybereyetracking\workers\HUDManagerWorker.hpp">
-      <Filter>GameWorkers</Filter>
-    </ClInclude>
+    <ClInclude Include="..\src\cybereyetracking\EyeTracker.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\stdafx.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\Utils.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\workers\BaseInkWidgetController.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\workers\CameraPitchWorker.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\workers\DialogWorker.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\workers\HUDManagerWorker.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\workers\LoadingGameWorker.hpp" />
+    <ClInclude Include="..\src\cybereyetracking\workers\RadialWheelWorker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GameWorkers">

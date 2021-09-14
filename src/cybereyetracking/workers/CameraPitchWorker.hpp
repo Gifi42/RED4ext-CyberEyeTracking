@@ -13,7 +13,7 @@ namespace CyberEyeTracking::Workers
         RED4ext::CClassFunction* _fSetXRot;
 
         RED4ext::CClass* _quaternionCls;
-        RED4ext::IScriptable* _quaternion;
+        RED4ext::ScriptInstance _quaternion;
         RED4ext::CProperty* _iProp;
         RED4ext::CProperty* _jProp;
         RED4ext::CProperty* _kProp;
@@ -23,7 +23,7 @@ namespace CyberEyeTracking::Workers
 
         RED4ext::CClass* _playerPuppetCls;
         RED4ext::GameInstance* _gameInstance;
-        RED4ext::IScriptable* RotateQuat(float value, bool isY);
+        RED4ext::ScriptInstance RotateQuat(float value, bool isY);
 
     public:
         CameraPitchWorker() = default;

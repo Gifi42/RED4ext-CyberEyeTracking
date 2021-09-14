@@ -25,7 +25,7 @@ void CyberEyeTracking::Workers::CameraPitchWorker::Init(RED4ext::GameInstance* g
     _gameInstance = gameInstance;
 }
 
-RED4ext::IScriptable* CyberEyeTracking::Workers::CameraPitchWorker::RotateQuat(float value, bool isY)
+RED4ext::ScriptInstance CyberEyeTracking::Workers::CameraPitchWorker::RotateQuat(float value, bool isY)
 {
     std::vector<RED4ext::CStackType> args;
     auto quat = _quaternionCls->AllocInstance();
