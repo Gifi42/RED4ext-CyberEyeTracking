@@ -6,5 +6,5 @@
 	url = https://github.com/WopsS/RenHook.git
 [submodule "src/red4ext.sdk"]
 	path = src/red4ext.sdk
-	url = git@github.com:https://github.com/WopsS/RED4ext.SDK.git
+	url = https://github.com/WopsS/RED4ext.SDK.git
 	branch = master
